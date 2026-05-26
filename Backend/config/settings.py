@@ -48,7 +48,6 @@ INSTALLED_APPS = [
     'rutinas',
     'medidas',
     'reportes',
-    'autenticacion',
 ]
 
 MIDDLEWARE = [

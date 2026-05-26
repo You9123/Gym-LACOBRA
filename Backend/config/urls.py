@@ -27,5 +27,4 @@ urlpatterns = [
     path('api/rutinas/', include('rutinas.urls')),
     path('api/medidas/', include('medidas.urls')),
     path('api/reportes/', include('reportes.urls')),
-    path('api/autenticacion/', include('autenticacion.urls')),
 ]
