@@ -1,12 +1,12 @@
 from django.db import models
-from ubicaciones.models import Distrito
-from sucursales.models import Sucursal
 
 
 class Usuario(models.Model):
+
     id_usuario = models.IntegerField(primary_key=True)
 
     nombre = models.CharField(max_length=100)
+
     apellido = models.CharField(max_length=100)
 
     correo = models.EmailField(max_length=150)
@@ -54,16 +54,16 @@ class Usuario(models.Model):
     )
 
     id_distrito = models.ForeignKey(
-        Distrito,
-        on_delete=models.SET_NULL,
+        'ubicaciones.Distrito',
+        on_delete=models.DO_NOTHING,
         db_column='ID_DISTRITO',
         blank=True,
         null=True
     )
 
     id_sucursal = models.ForeignKey(
-        Sucursal,
-        on_delete=models.SET_NULL,
+        'sucursales.Sucursal',
+        on_delete=models.DO_NOTHING,
         db_column='ID_SUCURSAL',
         blank=True,
         null=True
@@ -71,6 +71,7 @@ class Usuario(models.Model):
 
     class Meta:
         db_table = 'USUARIOS'
+        managed = False
 
-    def str(self):
+    def __str__(self):
         return f"{self.nombre} {self.apellido}"
