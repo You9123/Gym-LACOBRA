@@ -1,27 +1,41 @@
-# Python
+# ---------- Python ----------
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
+*.py[cod]
+*$py.class
 
-# Virtual Environment
+# ---------- Virtual Environment ----------
 Backend/venv/
 
-# Django
+# ---------- Django ----------
 *.log
 db.sqlite3
+db.sqlite3-journal
 media/
 staticfiles/
 
-# VSCode
+# Migrations cache (NO elimina migrations reales)
+**/__pycache__/
+
+# ---------- VSCode ----------
 .vscode/
 
-# React / Node
+# ---------- React / Node ----------
 Frontend/node_modules/
+Frontend/dist/
 
-# Environment Variables
+# ---------- Environment Variables ----------
 .env
+*.env
 
-# OS
+# ---------- OS ----------
 .DS_Store
 Thumbs.db
+
+# ---------- Oracle ----------
+*.dbf
+*.dmp
+*.ora
+
+# Oracle client / SQL Developer logs opcionales
+*.trc
+*.aud
