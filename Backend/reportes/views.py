@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.db import connection
 
-from .serializer import ReporteGrasaSerializer, ReporteImcSerializer
+from .serializer import ReporteGrasaSerializer
 
 # ==============================================================
 # VISTA: ReporteGrasaView
