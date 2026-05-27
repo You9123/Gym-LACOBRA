@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.db import connection, DatabaseError
 from .models import Provincia, Canton, Distrito
-from .serializers import ProvinciaSerializer, CantonSerializer, DistritoSerializer
+from .serializer import ProvinciaSerializer, CantonSerializer, DistritoSerializer
 
 
 # ─────────────────────────────────────────────

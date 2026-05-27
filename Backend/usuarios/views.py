@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from .models import Sexo, Rol, Usuario, ClienteCoach
-from .serializers import (
+from .serializer import (
     SexoSerializer, RolSerializer,
     UsuarioSerializer, UsuarioListSerializer,
     LoginSerializer, ClienteCoachSerializer,
