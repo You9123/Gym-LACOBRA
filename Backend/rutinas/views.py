@@ -8,7 +8,6 @@ from .serializer import (
     RutinaSerializer,
     DetalleRutinaSerializer,
     AsignacionRutinaSerializer,
-    ReporteGrasaSerializer,
 )
 
 
@@ -257,37 +256,3 @@ class AsignacionRutinaView(APIView):
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-# ==============================================================
-# VISTA: ReporteGrasaView
-# URL: /api/reportes/grasa/?umbral=25
-#
-# GET -> ejecuta SP_REPORTE_GRASA y retorna resultados en JSON
-# El parametro ?umbral es opcional, por defecto es 25
-# ==============================================================
-class ReporteGrasaView(APIView):
-
-    def get(self, request):
-        umbral = request.query_params.get('umbral', 25)
-
-        try:
-            umbral = float(umbral)
-        except ValueError:
-            return Response(
-                {'error': 'El umbral debe ser un numero.'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        try:
-            with connection.cursor() as cursor:
-                out_cursor = cursor.connection.cursor()
-                cursor.callproc('SP_REPORTE_GRASA', [umbral, out_cursor])
-
-                columnas = [col[0].lower() for col in out_cursor.description]
-                filas = out_cursor.fetchall()
-
-            resultados = [dict(zip(columnas, fila)) for fila in filas]
-            serializer = ReporteGrasaSerializer(resultados, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-
-        except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

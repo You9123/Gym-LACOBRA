@@ -4,7 +4,6 @@ from .views import (
     RutinaDetalleView,
     DetalleRutinaView,
     AsignacionRutinaView,
-    ReporteGrasaView,
 )
 
 urlpatterns = [
@@ -18,6 +17,5 @@ urlpatterns = [
 
     path('rutinas/asignar/',            AsignacionRutinaView.as_view()), # GET lista | POST asignar
 
-    path('reportes/grasa/',             ReporteGrasaView.as_view()),   # GET reporte grasa
 
 ]
