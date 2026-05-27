@@ -4,7 +4,7 @@ from rest_framework import status
 from django.db import connection
 
 from .models import Rutina, DetalleRutina, AsignacionRutina
-from .serializers import (
+from .serializer import (
     RutinaSerializer,
     DetalleRutinaSerializer,
     AsignacionRutinaSerializer,
@@ -279,7 +279,6 @@ class ReporteGrasaView(APIView):
 
         try:
             with connection.cursor() as cursor:
-                import cx_Oracle
                 out_cursor = cursor.connection.cursor()
                 cursor.callproc('SP_REPORTE_GRASA', [umbral, out_cursor])
 
