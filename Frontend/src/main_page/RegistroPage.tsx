@@ -3,8 +3,8 @@ import { useNavigate, Link } from "react-router-dom";
 import { obtenerSexos } from "../api/usuarios";
 import { obtenerSucursales } from "../api/sucursales";
 import { obtenerDistritos } from "../api/ubicaciones";
+import { crearUsuario } from "../api/usuarios";
 
-const BASE = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
 interface Sexo       { id_sexo: number;     nombre: string; }
 interface Sucursal   { id_sucursal: number; nombre: string; }
@@ -58,56 +58,40 @@ const RegistroPage = () => {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
+  e.preventDefault();
+  setError(null);
 
-    if (formData.contrasena !== formData.confirmar) {
-      setError("Las contraseñas no coinciden.");
-      return;
-    }
-    if (!formData.id_sexo) {
-      setError("Por favor seleccioná un sexo.");
-      return;
-    }
+  if (formData.contrasena !== formData.confirmar) {
+    setError("Las contraseñas no coinciden.");
+    return;
+  }
+  if (!formData.id_sexo) {
+    setError("Por favor seleccioná un sexo.");
+    return;
+  }
 
-    setLoading(true);
-    try {
-      const payload = {
-        nombre:           formData.nombre,
-        apellido:         formData.apellido,
-        correo:           formData.correo,
-        contrasena:       formData.contrasena,
-        telefono:         formData.telefono   || null,
-        fecha_nacimiento: formData.fecha_nacimiento || null,
-        id_sexo:          parseInt(formData.id_sexo),
-        id_sucursal:      formData.id_sucursal ? parseInt(formData.id_sucursal) : null,
-        id_distrito:      formData.id_distrito ? parseInt(formData.id_distrito) : null,
-        id_rol: 3, //Cliente
-      };
+  setLoading(true);
+  try {
+    await crearUsuario({
+      nombre:           formData.nombre,
+      apellido:         formData.apellido,
+      correo:           formData.correo,
+      contrasena:       formData.contrasena,
+      telefono:         formData.telefono || null,
+      fecha_nacimiento: formData.fecha_nacimiento || null,
+      id_sexo:          parseInt(formData.id_sexo),
+      id_sucursal:      formData.id_sucursal ? parseInt(formData.id_sucursal) : null,
+      id_distrito:      formData.id_distrito ? parseInt(formData.id_distrito) : null,
+      id_rol:           3,
+    });
 
-      const res = await fetch(`${BASE}/api/usuarios/registro/`, {
-        method:  "POST",
-        headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(
-          typeof data === "object"
-            ? Object.values(data).flat().join(" ")
-            : "Error al registrarse."
-        );
-      }
-
-      // Registro exitoso → al login
-      navigate("/login", { state: { registrado: true } });
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Error inesperado.");
-    } finally {
-      setLoading(false);
-    }
-  };
+    navigate("/login", { state: { registrado: true } });
+  } catch (err: unknown) {
+    setError(err instanceof Error ? err.message : "Error inesperado.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   // Input className reutilizable
   const inputCls = `
