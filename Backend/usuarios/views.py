@@ -303,3 +303,84 @@ class ClienteCoachDetailView(APIView):
             return Response({'error': 'Asignación no encontrada.'}, status=status.HTTP_404_NOT_FOUND)
         obj.delete()
         return Response({'mensaje': 'Asignación eliminada.'}, status=status.HTTP_200_OK)
+
+
+
+
+
+
+class ClienteDashboardView(APIView):
+
+    def get(self, request, correo):
+        resultado = {}
+
+        try:
+            with connection.cursor() as cursor:
+
+                # ── 1. Datos personales ──────────────────────────
+                cursor_out = connection.connection.cursor()
+                cursor.callproc(
+                    'SP_OBTENER_DATOS_CLIENTE',
+                    [correo, cursor_out]
+                )
+
+                cols = [c[0].lower() for c in cursor_out.description]
+                row = cursor_out.fetchone()
+
+                resultado['datos'] = (
+                    dict(zip(cols, row))
+                    if row else {}
+                )
+
+                # ── 2. Coach asignado ────────────────────────────
+                cursor_out2 = connection.connection.cursor()
+                cursor.callproc(
+                    'SP_OBTENER_COACH_CLIENTE',
+                    [correo, cursor_out2]
+                )
+
+                cols2 = [c[0].lower() for c in cursor_out2.description]
+                row2 = cursor_out2.fetchone()
+
+                resultado['coach'] = (
+                    dict(zip(cols2, row2))
+                    if row2 else None
+                )
+
+                # ── 3. Rutina activa ─────────────────────────────
+                cursor_out3 = connection.connection.cursor()
+                cursor.callproc(
+                    'SP_OBTENER_RUTINA_CLIENTE',
+                    [correo, cursor_out3]
+                )
+
+                cols3 = [c[0].lower() for c in cursor_out3.description]
+                row3 = cursor_out3.fetchone()
+
+                resultado['rutina'] = (
+                    dict(zip(cols3, row3))
+                    if row3 else None
+                )
+
+                # ── 4. Historial de medidas ──────────────────────
+                cursor_out4 = connection.connection.cursor()
+                cursor.callproc(
+                    'SP_OBTENER_HISTORIAL_MEDIDAS',
+                    [correo, cursor_out4]
+                )
+
+                cols4 = [c[0].lower() for c in cursor_out4.description]
+                rows4 = cursor_out4.fetchall()
+
+                resultado['medidas'] = [
+                    dict(zip(cols4, r))
+                    for r in rows4
+                ]
+
+        except DatabaseError as e:
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+        return Response(resultado)

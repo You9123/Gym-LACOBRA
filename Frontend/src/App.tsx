@@ -15,6 +15,8 @@ import Sucursales from "./admin_pages/Sucursales";
 import Ubicaciones from "./admin_pages/Ubicaciones";
 import NotFound from "./admin_pages/NotFound";
 
+import ClienteDashboard from "./User_pages/ClienteDashboard";
+
 // SEGURIDAD Y VISTAS DEL COACH (Nuevas Importaciones)
 import GuardCoach from "./components/shared/GuardCoach";
 import DashboardCoach from "./coach_pages/DashboardCoach";
@@ -40,6 +42,10 @@ function App() {
             <Route path="/reportes" element={<Reportes />} />
             <Route path="/sucursales" element={<Sucursales />} />
             <Route path="/ubicaciones" element={<Ubicaciones />} />
+
+            {/* Rutas del Cliente */}
+            <Route path="/cliente/dashboard" element={<ClienteDashboard />} />
+
 
             {/* Rutas del Coach Protegidas (id_rol === 2) */}
             <Route 

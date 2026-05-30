@@ -173,3 +173,79 @@ export const eliminarAsignacionClienteCoach = async (id: number): Promise<{ mens
   const { data } = await api.delete<{ mensaje: string }>(`/usuarios/cliente-coach/${id}/`);
   return data;
 };
+
+
+
+
+// ── DASHBOARD CLIENTE (SP_OBTENER_*) ────────────────────────────────────────
+
+export interface DatosCliente {
+  id_usuario: number;
+  nombre: string;
+  apellido: string;
+  correo: string;
+  telefono?: string | null;
+  fecha_nacimiento?: string | null;
+  id_sucursal?: number | null;
+  nombre_sucursal?: string | null;
+}
+
+export interface CoachCliente {
+  id_cliente_coach: number;
+  fecha_asignacion?: string | null;
+  id_coach: number;
+  nombre: string;
+  apellido: string;
+  correo: string;
+  telefono?: string | null;
+}
+
+export interface RutinaCliente {
+  id_asignacion: number;
+  fecha_asignacion?: string | null;
+  observaciones?: string | null;
+  id_rutina: number;
+  nombre_rutina: string;
+  objetivo?: string | null;
+  descripcion?: string | null;
+  fecha_creacion?: string | null;
+}
+
+export interface MedidaCliente {
+  id_historial: number;
+  peso?: number | null;
+  altura?: number | null;
+  porcentaje_grasa?: number | null;
+  masa_muscular?: number | null;
+  cuello?: number | null;
+  cintura?: number | null;
+  cadera?: number | null;
+  pecho?: number | null;
+  brazo?: number | null;
+  pierna?: number | null;
+  fecha_medicion?: string | null;
+}
+
+export interface DashboardCliente {
+  datos: DatosCliente;
+  coach: CoachCliente | null;
+  rutina: RutinaCliente | null;
+  medidas: MedidaCliente[];
+}
+
+export async function obtenerDashboardCliente(correo: string): Promise<DashboardCliente> {
+  const { data } = await api.get<DashboardCliente>(
+    `/usuarios/usuario/cliente/dashboard/${encodeURIComponent(correo)}/`
+  );
+
+  return data;
+}
+
+
+export interface RespuestaLogin {
+  token?: string;
+  usuario?: UsuarioLista;
+  mensaje?: string;
+  id_usuario?: number; 
+  id_rol?: number;      
+}
