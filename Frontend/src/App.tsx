@@ -3,18 +3,17 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Navbar from "./components/shared/Navbar";
 import Footer from "./components/shared/Footer";
 
-import Dashboard from "./pages/Dashboard";
-import Login from "./pages/Login";
+import Dashboard from "./admin_pages/Dashboard";
+import Login from "./admin_pages/Login";
 
-import Usuarios from "./pages/Usuarios";
-import Ejercicios from "./pages/Ejercicios";
-import Medidas from "./pages/Medidas";
-import Rutinas from "./pages/Rutinas";
-import Reportes from "./pages/Reportes";
-import Sucursales from "./pages/Sucursales";
-import Ubicaciones from "./pages/Ubicaciones";
-
-import NotFound from "./pages/NotFound";
+import Usuarios from "./admin_pages/Usuarios";
+import Ejercicios from "./admin_pages/Ejercicios";
+import Medidas from "./admin_pages/Medidas";
+import Rutinas from "./admin_pages/Rutinas";
+import Reportes from "./admin_pages/Reportes";
+import Sucursales from "./admin_pages/Sucursales";
+import Ubicaciones from "./admin_pages/Ubicaciones";
+import NotFound from "./admin_pages/NotFound";
 
 function App() {
 
