@@ -3,9 +3,13 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Navbar from "./components/shared/Navbar";
 import Footer from "./components/shared/Footer";
 
-import Dashboard from "./admin_pages/Dashboard";
-import Login from "./admin_pages/Login";
+// Main page (públicas)
+import HomePage from "./main_page/HomePage";
+import LoginPage from "./main_page/LoginPage";
+import RegistroPage from "./main_page/RegistroPage";
 
+// Admin pages
+import Dashboard from "./admin_pages/Dashboard";
 import Usuarios from "./admin_pages/Usuarios";
 import Ejercicios from "./admin_pages/Ejercicios";
 import Medidas from "./admin_pages/Medidas";
@@ -27,67 +31,75 @@ import CrearRutina from "./coach_pages/CrearRutina";
 function App() {
   return (
     <BrowserRouter>
-      <div className="min-h-screen bg-slate-950 text-white flex flex-col">
-        <Navbar />
+      <Routes>
+        {/* ── Rutas públicas (sin Navbar del sistema) ── */}
+        <Route path="/"          element={<HomePage />} />
+        <Route path="/login"     element={<LoginPage />} />
+        <Route path="/registro"  element={<RegistroPage />} />
 
-        <main className="flex-1 container mx-auto p-8">
-          <Routes>
-            {/* Rutas Administrativas / Generales */}
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/usuarios" element={<Usuarios />} />
-            <Route path="/ejercicios" element={<Ejercicios />} />
-            <Route path="/medidas" element={<Medidas />} />
-            <Route path="/rutinas" element={<Rutinas />} />
-            <Route path="/reportes" element={<Reportes />} />
-            <Route path="/sucursales" element={<Sucursales />} />
-            <Route path="/ubicaciones" element={<Ubicaciones />} />
+        {/* ── Rutas del sistema (con Navbar y Footer) ── */}
+        <Route
+          path="/*"
+          element={
+            <div className="min-h-screen bg-slate-950 text-white flex flex-col">
+              <Navbar />
+              
+              <main className="flex-1 container mx-auto p-8">
+                <Routes>
+                  {/* Sub-rutas Administrativas */}
+                  <Route path="dashboard"    element={<Dashboard />} />
+                  <Route path="usuarios"     element={<Usuarios />} />
+                  <Route path="ejercicios"   element={<Ejercicios />} />
+                  <Route path="medidas"      element={<Medidas />} />
+                  <Route path="rutinas"      element={<Rutinas />} />
+                  <Route path="reportes"     element={<Reportes />} />
+                  <Route path="sucursales"   element={<Sucursales />} />
+                  <Route path="ubicaciones"  element={<Ubicaciones />} />
 
-            {/* Rutas del Cliente */}
-            <Route path="/cliente/dashboard" element={<ClienteDashboard />} />
+                  {/* Sub-rutas del Coach Protegidas (id_rol === 2) */}
+                  <Route 
+                    path="coach/dashboard" 
+                    element={
+                      <GuardCoach>
+                        <DashboardCoach />
+                      </GuardCoach>
+                    } 
+                  />
+                  <Route 
+                    path="coach/cliente/:id/medidas" 
+                    element={
+                      <GuardCoach>
+                        <MedidaCliente />
+                      </GuardCoach>
+                    } 
+                  />
+                  <Route 
+                    path="coach/cliente/:id/asignar" 
+                    element={
+                      <GuardCoach>
+                        <AsignarRutina />
+                      </GuardCoach>
+                    } 
+                  />
+                  <Route 
+                    path="coach/rutinas/crear" 
+                    element={
+                      <GuardCoach>
+                        <CrearRutina />
+                      </GuardCoach>
+                    } 
+                  />
 
+                  {/* Captura de sub-rutas no existentes dentro del sistema */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </main>
 
-            {/* Rutas del Coach Protegidas (id_rol === 2) */}
-            <Route 
-              path="/coach/dashboard" 
-              element={
-                <GuardCoach>
-                  <DashboardCoach />
-                </GuardCoach>
-              } 
-            />
-            <Route 
-              path="/coach/cliente/:id/medidas" 
-              element={
-                <GuardCoach>
-                  <MedidaCliente />
-                </GuardCoach>
-              } 
-            />
-            <Route 
-              path="/coach/cliente/:id/asignar" 
-              element={
-                <GuardCoach>
-                  <AsignarRutina />
-                </GuardCoach>
-              } 
-            />
-            <Route 
-              path="/coach/rutinas/crear" 
-              element={
-                <GuardCoach>
-                  <CrearRutina />
-                </GuardCoach>
-              } 
-            />
-
-            {/* Captura de Rutas no Existentes */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </main>
-
-        <Footer />
-      </div>
+              <Footer />
+            </div>
+          }
+        />
+      </Routes>
     </BrowserRouter>
   );
 }

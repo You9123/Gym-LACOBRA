@@ -1,25 +1,31 @@
 // pages/Ejercicios.tsx
 import { useState, useEffect } from 'react';
+
+// 1. Importa solo las funciones aquí
 import { 
   obtenerEjercicios, 
   crearEjercicio, 
   actualizarEjercicio, 
   eliminarEjercicio 
 } from '../api/ejercicios';
+
+// 2. Importa la interfaz de forma explícita como un TIPO aquí abajo
+import type { Ejercicio } from '../api/ejercicios';
+
 import EjercicioCard from '../components/ejercicios/EjercicioCard';
 import EjercicioForm from '../components/ejercicios/EjercicioForm';
 import ConfirmDelete from '../components/shared/ConfirmDelete';
 
 const Ejercicios = () => {
-  const [ejercicios, setEjercicios] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
-  const [editingEjercicio, setEditingEjercicio] = useState(null);
-  const [errorMessage, setErrorMessage] = useState("");
+  // Se asigna el tipo Ejercicio[] a los estados correspondientes
+  const [ejercicios, setEjercicios] = useState<Ejercicio[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [showForm, setShowForm] = useState<boolean>(false);
+  const [editingEjercicio, setEditingEjercicio] = useState<Ejercicio | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string>("");
   
-  // Estado para el modal de confirmación
-  const [showConfirmDelete, setShowConfirmDelete] = useState(false);
-  const [ejercicioToDelete, setEjercicioToDelete] = useState(null);
+  const [showConfirmDelete, setShowConfirmDelete] = useState<boolean>(false);
+  const [ejercicioToDelete, setEjercicioToDelete] = useState<Ejercicio | null>(null);
 
   useEffect(() => {
     cargarEjercicios();
@@ -29,7 +35,7 @@ const Ejercicios = () => {
     try {
       setLoading(true);
       const data = await obtenerEjercicios();
-      setEjercicios(data);
+      setEjercicios(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error cargando ejercicios:', error);
       setErrorMessage('Error al cargar los ejercicios');
@@ -38,7 +44,8 @@ const Ejercicios = () => {
     }
   };
 
-  const handleCreate = async (ejercicioData) => {
+  // Se tipa el parámetro con 'any' para delegar la estructura flexible al Formulario
+  const handleCreate = async (ejercicioData: any) => {
     try {
       await crearEjercicio(ejercicioData);
       await cargarEjercicios();
@@ -49,7 +56,8 @@ const Ejercicios = () => {
     }
   };
 
-  const handleUpdate = async (id, ejercicioData) => {
+  // Se asignan los tipos explícitos a 'id' y 'ejercicioData' para evitar el implicit any
+  const handleUpdate = async (id: number | string, ejercicioData: any) => {
     try {
       await actualizarEjercicio(id, ejercicioData);
       await cargarEjercicios();
@@ -60,13 +68,12 @@ const Ejercicios = () => {
     }
   };
 
-  // Abrir modal de confirmación
-  const confirmDelete = (ejercicio) => {
+  // Se asegura que la función reciba una estructura válida de Ejercicio
+  const confirmDelete = (ejercicio: Ejercicio) => {
     setEjercicioToDelete(ejercicio);
     setShowConfirmDelete(true);
   };
 
-  // Ejecutar eliminación
   const handleDelete = async () => {
     if (ejercicioToDelete) {
       try {
@@ -81,7 +88,6 @@ const Ejercicios = () => {
     }
   };
 
-  // Cancelar eliminación
   const handleCancelDelete = () => {
     setShowConfirmDelete(false);
     setEjercicioToDelete(null);
@@ -173,7 +179,7 @@ const Ejercicios = () => {
           <p className="text-slate-400">No hay ejercicios registrados</p>
           <button
             onClick={() => setShowForm(true)}
-            className="mt-3 text-cyan-400 hover:text-cyan-300"
+            className="mt-3 text-cyan-400 hover:text-cyan-300 font-semibold"
           >
             Crear el primer ejercicio
           </button>
