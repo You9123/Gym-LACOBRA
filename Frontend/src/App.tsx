@@ -20,7 +20,7 @@ import Ubicaciones from "./admin_pages/Ubicaciones";
 import NotFound from "./admin_pages/NotFound";
 
 // SEGURIDAD Y VISTAS DEL COACH (Nuevas Importaciones)
-import GuardCoach from "./components/shared/GuardCoach";
+import GuardPorRol from "./components/shared/GuardPorRol";
 import DashboardCoach from "./coach_pages/DashboardCoach";
 import MedidaCliente from "./coach_pages/MedidaCliente";
 import AsignarRutina from "./coach_pages/AsignarRutina";
@@ -54,37 +54,37 @@ function App() {
                   <Route path="sucursales"   element={<Sucursales />} />
                   <Route path="ubicaciones"  element={<Ubicaciones />} />
 
-                  {/* Sub-rutas del Coach Protegidas (id_rol === 2) */}
+                  {/* Sub-rutas del Coach Protegidas pasando el ID de rol dinámico (Coach = 2) */}
                   <Route 
                     path="coach/dashboard" 
                     element={
-                      <GuardCoach>
+                      <GuardPorRol rolPermitido={2}>
                         <DashboardCoach />
-                      </GuardCoach>
+                      </GuardPorRol>
                     } 
                   />
                   <Route 
                     path="coach/cliente/:id/medidas" 
                     element={
-                      <GuardCoach>
+                      <GuardPorRol rolPermitido={2}>
                         <MedidaCliente />
-                      </GuardCoach>
+                      </GuardPorRol>
                     } 
                   />
                   <Route 
                     path="coach/cliente/:id/asignar" 
                     element={
-                      <GuardCoach>
+                      <GuardPorRol rolPermitido={2}>
                         <AsignarRutina />
-                      </GuardCoach>
+                      </GuardPorRol>
                     } 
                   />
                   <Route 
                     path="coach/rutinas/crear" 
                     element={
-                      <GuardCoach>
+                      <GuardPorRol rolPermitido={2}>
                         <CrearRutina />
-                      </GuardCoach>
+                      </GuardPorRol>
                     } 
                   />
 
