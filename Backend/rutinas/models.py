@@ -7,7 +7,7 @@ class Rutina(models.Model):
     id_rutina = models.AutoField(primary_key=True)
     nombre = models.CharField(max_length=100, null=True, blank=True)
     objetivo = models.CharField(max_length=250, null=True, blank=True)
-    fecha_creacion = models.DateField(null=True, blank=True)
+    fecha_creacion = models.DateField(auto_now_add=True)
     descripcion = models.CharField(max_length=500, null=True, blank=True)
     id_coach = models.ForeignKey(
         Usuario,

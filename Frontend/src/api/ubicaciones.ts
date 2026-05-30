@@ -29,18 +29,18 @@ export interface Distrito {
 // 2. PETICIONES AXIOS (Mapeadas con el prefijo /api/ubicaciones/)
 // ============================================================================
 
-// --- PROVINCIAS ---
+// PROVINCIAS 
 
-/**
- * GET /api/ubicaciones/provincias/ - Obtiene la lista de todas las provincias
+/*
+  GET /api/ubicaciones/provincias/ - Obtiene la lista de todas las provincias
  */
 export const obtenerProvincias = async (): Promise<Provincia[]> => {
   const { data } = await api.get<Provincia[]>('/ubicaciones/provincias/');
   return data;
 };
 
-/**
- * GET /api/ubicaciones/provincias/<id>/ - Obtiene el detalle de una provincia específica
+/*
+  GET /api/ubicaciones/provincias/<id>/ - Obtiene el detalle de una provincia específica
  */
 export const obtenerProvinciaPorId = async (id: number): Promise<Provincia> => {
   const { data } = await api.get<Provincia>(`/ubicaciones/provincias/${id}/`);
@@ -48,19 +48,19 @@ export const obtenerProvinciaPorId = async (id: number): Promise<Provincia> => {
 };
 
 
-// --- CANTONES ---
+//  CANTONES 
 
-/**
- * GET /api/ubicaciones/cantones/ - Obtiene la lista de cantones
- * @param filtros Opcional: filtro query (?provincia_id=X) para traer solo cantones de esa provincia
+/*
+  GET /api/ubicaciones/cantones/ - Obtiene la lista de cantones
+  @param filtros Opcional: filtro query (?provincia_id=X) para traer solo cantones de esa provincia
  */
 export const obtenerCantones = async (filtros?: { provincia_id?: number }): Promise<Canton[]> => {
   const { data } = await api.get<Canton[]>('/ubicaciones/cantones/', { params: filtros });
   return data;
 };
 
-/**
- * GET /api/ubicaciones/cantones/<id>/ - Obtiene el detalle de un cantón específico
+/*
+  GET /api/ubicaciones/cantones/<id>/ - Obtiene el detalle de un cantón específico
  */
 export const obtenerCantonPorId = async (id: number): Promise<Canton> => {
   const { data } = await api.get<Canton>(`/ubicaciones/cantones/${id}/`);
@@ -68,19 +68,19 @@ export const obtenerCantonPorId = async (id: number): Promise<Canton> => {
 };
 
 
-// --- DISTRITOS ---
+//  DISTRITOS 
 
-/**
- * GET /api/ubicaciones/distritos/ - Obtiene la lista de distritos
- * @param filtros Opcional: filtro query (?canton_id=X) para traer solo distritos de ese cantón
+/*
+  GET /api/ubicaciones/distritos/ - Obtiene la lista de distritos
+  @param filtros Opcional: filtro query (?canton_id=X) para traer solo distritos de ese cantón
  */
 export const obtenerDistritos = async (filtros?: { canton_id?: number }): Promise<Distrito[]> => {
   const { data } = await api.get<Distrito[]>('/ubicaciones/distritos/', { params: filtros });
   return data;
 };
 
-/**
- * GET /api/ubicaciones/distritos/<id>/ - Obtiene el detalle de un distrito específico
+/*
+  GET /api/ubicaciones/distritos/<id>/ - Obtiene el detalle de un distrito específico
  */
 export const obtenerDistritoPorId = async (id: number): Promise<Distrito> => {
   const { data } = await api.get<Distrito>(`/ubicaciones/distritos/${id}/`);

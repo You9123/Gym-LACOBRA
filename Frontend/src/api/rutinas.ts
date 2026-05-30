@@ -9,7 +9,7 @@ export interface Rutina {
   id_rutina: number;
   nombre?: string | null;
   objetivo?: string | null;
-  fecha_creacion?: string | null; // Django lo envía como string "YYYY-MM-DD"
+  fecha_creacion?: string | null;
   descripcion?: string | null;
   id_coach?: number | null;
 }
@@ -24,6 +24,10 @@ export interface DetalleRutina {
   orden_ejercicio?: number | null;
 }
 
+export interface DetalleRutinaConNombre extends DetalleRutina {
+  ejercicio_nombre: string;  
+}
+
 export interface AsignacionRutina {
   id_asignacion: number;
   id_cliente?: number | null;
@@ -32,7 +36,6 @@ export interface AsignacionRutina {
   observaciones?: string | null;
 }
 
-// Interfaces de respuesta genéricas para tus procedimientos almacenados
 export interface RespuestaMensaje {
   mensaje: string;
 }
@@ -42,95 +45,74 @@ export interface RespuestaError {
 }
 
 // ============================================================================
-// 2. PETICIONES AXIOS (Mapeadas uno a uno con tus URLconf)
+// 2. PETICIONES AXIOS
 // ============================================================================
 
-// --- ENDPOINTS DE RUTINAS PRINCIPALES ---
+// ENDPOINTS DE RUTINAS PRINCIPALES
 
-/**
- * GET /api/rutinas/ - Lista todas las cabeceras de rutinas
- */
 export const obtenerRutinas = async (): Promise<Rutina[]> => {
   const { data } = await api.get<Rutina[]>('/rutinas/rutinas/');
   return data;
 };
 
-/**
- * POST /api/rutinas/ - Crea una rutina nueva ejecutando el SP en Django
- * @param payload Datos de la rutina y su primer ejercicio requeridos por tu SP
- */
-export const crearRutina = async (payload: Omit<DetalleRutina, 'id_detalle_rutina'>): Promise<RespuestaMensaje> => {
-  const { data } = await api.post<RespuestaMensaje>('/rutinas/rutinas/', payload);
+export const crearRutina = async (
+  payload: Omit<Rutina, 'id_rutina' | 'fecha_creacion'>
+): Promise<Rutina> => {
+  const { data } = await api.post<Rutina>('/rutinas/rutinas/', payload);
   return data;
 };
 
-/**
- * GET /api/rutinas/<id>/ - Obtiene una rutina específica por su ID
- */
 export const obtenerRutinaPorId = async (id: number): Promise<Rutina> => {
   const { data } = await api.get<Rutina>(`/rutinas/rutinas/${id}/`);
   return data;
 };
 
-/**
- * PUT /api/rutinas/<id>/ - Modifica una rutina por ID vía procedimiento almacenado
- */
 export const actualizarRutina = async (id: number, payload: Partial<Omit<DetalleRutina, 'id_detalle_rutina'>>): Promise<RespuestaMensaje> => {
   const { data } = await api.put<RespuestaMensaje>(`/rutinas/rutinas/${id}/`, payload);
   return data;
 };
 
-/**
- * DELETE /api/rutinas/<id>/ - Elimina una rutina por ID vía procedimiento almacenado
- */
 export const eliminarRutina = async (id: number): Promise<RespuestaMensaje> => {
   const { data } = await api.delete<RespuestaMensaje>(`/rutinas/rutinas/${id}/`);
   return data;
 };
 
+// ENDPOINTS DE DETALLE DE RUTINA
 
-// --- ENDPOINTS DE DETALLE DE RUTINA (Ejercicios individuales dentro de la rutina) ---
-
-/**
- * POST /api/rutinas/detalle/ - Agrega un ejercicio al detalle de una rutina
- */
 export const agregarEjercicioADetalle = async (payload: Omit<DetalleRutina, 'id_detalle_rutina'>): Promise<DetalleRutina> => {
   const { data } = await api.post<DetalleRutina>('/rutinas/rutinas/detalle/', payload);
   return data;
 };
 
-/**
- * PUT /api/rutinas/detalle/<id>/ - Actualiza series/reps de un ejercicio del detalle
- */
 export const actualizarEjercicioEnDetalle = async (idDetalle: number, payload: Partial<DetalleRutina>): Promise<DetalleRutina> => {
   const { data } = await api.put<DetalleRutina>(`/rutinas/rutinas/detalle/${idDetalle}/`, payload);
   return data;
 };
 
-/**
- * DELETE /api/rutinas/detalle/<id>/ - Remueve un ejercicio del detalle de una rutina
- */
 export const eliminarEjercicioDeDetalle = async (idDetalle: number): Promise<RespuestaMensaje> => {
   const { data } = await api.delete<RespuestaMensaje>(`/rutinas/rutinas/detalle/${idDetalle}/`);
   return data;
 };
 
+//  NUEVO ENDPOINT: Obtener detalles por rutina 
 
-// --- ENDPOINTS DE ASIGNACIÓN ---
-
-/**
- * GET /api/rutinas/asignar/ - Lista todas las asignaciones de rutinas a clientes
+/*
+GET /api/rutinas/rutinas/detalle-por-rutina/?id_rutina=<id>
+Obtiene todos los ejercicios de una rutina específica
  */
+export const obtenerDetallesPorRutina = async (idRutina: number): Promise<DetalleRutinaConNombre[]> => {
+  const { data } = await api.get<DetalleRutinaConNombre[]>(`/rutinas/rutinas/detalle-por-rutina/?id_rutina=${idRutina}`);
+  return data;
+};
+
+// ENDPOINTS DE ASIGNACIÓN
+
 export const obtenerAsignacionesRutinas = async (): Promise<AsignacionRutina[]> => {
   const { data } = await api.get<AsignacionRutina[]>('/rutinas/rutinas/asignar/');
   return data;
 };
 
-/**
- * POST /api/rutinas/asignar/ - Asigna una rutina a un cliente específico
- */
 export const asignarRutinaACliente = async (payload: Omit<AsignacionRutina, 'id_asignacion'>): Promise<AsignacionRutina> => {
   const { data } = await api.post<AsignacionRutina>('/rutinas/rutinas/asignar/', payload);
   return data;
 };
-

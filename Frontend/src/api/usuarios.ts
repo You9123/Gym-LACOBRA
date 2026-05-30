@@ -70,21 +70,21 @@ export interface ClienteCoach {
 }
 
 // ============================================================================
-// 2. PETICIONES AXIOS (Mapeadas uno a uno con tus sub-rutas de usuarios)
+// 2. PETICIONES AXIOS (Mapeadas uno a uno con sub-rutas de usuarios)
 // ============================================================================
 
-// --- CATÁLOGOS ---
+//  CATÁLOGOS 
 
-/**
- * GET /api/usuarios/sexos/ - Lista los tipos de sexo cargados de la base de datos
+/*
+  GET /api/usuarios/sexos/ - Lista los tipos de sexo cargados de la base de datos
  */
 export const obtenerSexos = async (): Promise<Sexo[]> => {
   const { data } = await api.get<Sexo[]>('/usuarios/sexos/');
   return data;
 };
 
-/**
- * GET /api/usuarios/roles/ - Lista los roles del sistema (Admin, Coach, Cliente, etc.)
+/*
+  GET /api/usuarios/roles/ - Lista los roles del sistema (Admin, Coach, Cliente, etc.)
  */
 export const obtenerRoles = async (): Promise<Rol[]> => {
   const { data } = await api.get<Rol[]>('/usuarios/roles/');
@@ -92,43 +92,43 @@ export const obtenerRoles = async (): Promise<Rol[]> => {
 };
 
 
-// --- CONTROL DE USUARIOS ---
+//  CONTROL DE USUARIOS 
 
-/**
- * GET /api/usuarios/usuarios/ - Retorna la lista ligera de todos los usuarios
+/*
+  GET /api/usuarios/usuarios/ - Retorna la lista ligera de todos los usuarios
  */
 export const obtenerUsuarios = async (): Promise<UsuarioLista[]> => {
   const { data } = await api.get<UsuarioLista[]>('/usuarios/usuarios/');
   return data;
 };
 
-/**
- * POST /api/usuarios/usuarios/ - Registra un nuevo usuario en Oracle
- * @param payload Objeto completo de usuario incluyendo contraseña
+/*
+  POST /api/usuarios/usuarios/ - Registra un nuevo usuario en Oracle
+  @param payload Objeto completo de usuario incluyendo contraseña
  */
 export const crearUsuario = async (payload: Omit<Usuario, 'id_usuario' | 'fecha_registro'>): Promise<Usuario> => {
   const { data } = await api.post<Usuario>('/usuarios/usuarios/', payload);
   return data;
 };
 
-/**
- * GET /api/usuarios/usuarios/<id>/ - Obtiene el perfil detallado de un usuario único
+/*
+  GET /api/usuarios/usuarios/<id>/ - Obtiene el perfil detallado de un usuario único
  */
 export const obtenerUsuarioPorId = async (id: number): Promise<Usuario> => {
   const { data } = await api.get<Usuario>(`/usuarios/usuarios/${id}/`);
   return data;
 };
 
-/**
- * PUT /api/usuarios/usuarios/<id>/ - Actualiza los datos del usuario en Oracle
+/*
+  PUT /api/usuarios/usuarios/<id>/ - Actualiza los datos del usuario en Oracle
  */
 export const actualizarUsuario = async (id: number, payload: Partial<Usuario>): Promise<Usuario> => {
   const { data } = await api.put<Usuario>(`/usuarios/usuarios/${id}/`, payload);
   return data;
 };
 
-/**
- * DELETE /api/usuarios/usuarios/<id>/ - Remueve o desactiva un usuario por ID
+/*
+  DELETE /api/usuarios/usuarios/<id>/ - Remueve o desactiva un usuario por ID
  */
 export const eliminarUsuario = async (id: number): Promise<{ mensaje: string }> => {
   const { data } = await api.delete<{ mensaje: string }>(`/usuarios/usuarios/${id}/`);
@@ -136,10 +136,10 @@ export const eliminarUsuario = async (id: number): Promise<{ mensaje: string }> 
 };
 
 
-// --- AUTENTICACIÓN ---
+// AUTENTICACIÓN 
 
-/**
- * POST /api/usuarios/auth/login/ - Envía las credenciales para validar accesos
+/*
+  POST /api/usuarios/auth/login/ - Envía las credenciales para validar accesos
  */
 export const iniciarSesion = async (credenciales: CredencialesLogin): Promise<RespuestaLogin> => {
   const { data } = await api.post<RespuestaLogin>('/usuarios/auth/login/', credenciales);
@@ -147,27 +147,27 @@ export const iniciarSesion = async (credenciales: CredencialesLogin): Promise<Re
 };
 
 
-// --- RELACIÓN CLIENTE-COACH ---
+//  RELACIÓN CLIENTE-COACH 
 
-/**
- * GET /api/usuarios/cliente-coach/ - Obtiene asignaciones de entrenadores
- * Permite mandar filtros opcionales como parámetros url (?coach_id=1 o ?cliente_id=2)
+/*
+  GET /api/usuarios/cliente-coach/ - Obtiene asignaciones de entrenadores
+  Permite mandar filtros opcionales como parámetros url (?coach_id=1 o ?cliente_id=2)
  */
 export const obtenerAsignacionesClienteCoach = async (filtros?: { coach_id?: number; cliente_id?: number }): Promise<ClienteCoach[]> => {
   const { data } = await api.get<ClienteCoach[]>('/usuarios/cliente-coach/', { params: filtros });
   return data;
 };
 
-/**
- * POST /api/usuarios/cliente-coach/ - Vincula un cliente con su respectivo coach
+/*
+  POST /api/usuarios/cliente-coach/ - Vincula un cliente con su respectivo coach
  */
 export const asignarClienteACoach = async (payload: Omit<ClienteCoach, 'id_cliente_coach' | 'cliente_nombre' | 'coach_nombre'>): Promise<ClienteCoach> => {
   const { data } = await api.post<ClienteCoach>('/usuarios/cliente-coach/', payload);
   return data;
 };
 
-/**
- * DELETE /api/usuarios/cliente-coach/<id>/ - Elimina el vínculo entre un cliente y un coach
+/*
+  DELETE /api/usuarios/cliente-coach/<id>/ - Elimina el vínculo entre un cliente y un coach
  */
 export const eliminarAsignacionClienteCoach = async (id: number): Promise<{ mensaje: string }> => {
   const { data } = await api.delete<{ mensaje: string }>(`/usuarios/cliente-coach/${id}/`);

@@ -9,7 +9,7 @@ baseURL: 'http://localhost:8000/api',  timeout: 15000,
   },
 });
 
-// Interceptor de seguridad por si manejas autenticación más adelante
+// Interceptor de seguridad por si se maneja autenticación más adelante
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');

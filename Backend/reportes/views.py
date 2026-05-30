@@ -3,13 +3,12 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.db import connection
+import logging
 
 from .serializer import ReporteGrasaSerializer
 
-# ==============================================================
-# VISTA: ReporteGrasaView
-# URL:   GET /api/reportes/grasa/?umbral=25
-# ==============================================================
+logger = logging.getLogger(__name__)
+
 
 class ReporteGrasaView(APIView):
 
@@ -26,17 +25,42 @@ class ReporteGrasaView(APIView):
 
         try:
             with connection.cursor() as cursor:
-                out_cursor = cursor.connection.cursor()
-                cursor.callproc('SP_REPORTE_GRASA', [umbral, out_cursor])
+                # Usar USUARIO y MEDIDA (singular)
+                cursor.execute("""
+                    SELECT 
+                        U.ID_USUARIO,
+                        U.NOMBRE,
+                        U.APELLIDO,
+                        U.CORREO,
+                        M.PORCENTAJE_GRASA_ACTUAL,
+                        M.FECHA_ACTUALIZACION
+                    FROM USUARIO U
+                    INNER JOIN MEDIDA M ON U.ID_USUARIO = M.ID_CLIENTE
+                    WHERE M.PORCENTAJE_GRASA_ACTUAL > %s
+                    ORDER BY M.PORCENTAJE_GRASA_ACTUAL DESC
+                """, [umbral])
 
-                columnas = [col[0].lower() for col in out_cursor.description]
-                filas = out_cursor.fetchall()
+                columnas = [col[0].lower() for col in cursor.description]
+                filas = cursor.fetchall()
 
-            resultados = [dict(zip(columnas, fila)) for fila in filas]
+                resultados = []
+                for fila in filas:
+                    resultados.append({
+                        'id_usuario': fila[0],
+                        'nombre': fila[1],
+                        'apellido': fila[2],
+                        'correo': fila[3],
+                        'porcentaje_grasa_actual': str(fila[4]),
+                        'fecha_actualizacion': fila[5].strftime('%Y-%m-%d') if fila[5] else None
+                    })
+
             serializer = ReporteGrasaSerializer(resultados, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         except Exception as e:
+            logger.error(f"Error: {e}")
+            import traceback
+            traceback.print_exc()
             return Response(
                 {'error': str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
