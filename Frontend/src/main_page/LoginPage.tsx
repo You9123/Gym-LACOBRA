@@ -4,10 +4,11 @@ import { iniciarSesion } from "../api/usuarios";
 
 // Diccionario de enrutamiento basado en los IDs de Oracle
 const DIRECCIONES_POR_ROL: Record<number, string> = {
-  1: "/dashboard",        // Admin
-  2: "/coach/dashboard",  // Coach
-  3: "/cliente/dashboard" // Cliente (O la ruta que definas a futuro)
+  1: "/admin/dashboard",   // 👈 Actualizado con el prefijo
+  2: "/coach/dashboard",  
+  3: "/cliente/dashboard" 
 };
+
 
 const LoginPage = () => {
   const navigate = useNavigate();

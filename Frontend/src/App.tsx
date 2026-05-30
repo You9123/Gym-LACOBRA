@@ -44,49 +44,21 @@ function App() {
               
               <main className="flex-1 container mx-auto p-8">
                 <Routes>
-                  {/* Sub-rutas Administrativas */}
-                  <Route path="dashboard"    element={<Dashboard />} />
-                  <Route path="usuarios"     element={<Usuarios />} />
-                  <Route path="ejercicios"   element={<Ejercicios />} />
-                  <Route path="medidas"      element={<Medidas />} />
-                  <Route path="rutinas"      element={<Rutinas />} />
-                  <Route path="reportes"     element={<Reportes />} />
-                  <Route path="sucursales"   element={<Sucursales />} />
-                  <Route path="ubicaciones"  element={<Ubicaciones />} />
+                  {/* Sub-rutas Administrativas Protegidas con Prefijo (Admin = 1) */}
+                  <Route path="admin/dashboard"   element={<GuardPorRol rolPermitido={1}><Dashboard /></GuardPorRol>} />
+                  <Route path="admin/usuarios"    element={<GuardPorRol rolPermitido={1}><Usuarios /></GuardPorRol>} />
+                  <Route path="admin/ejercicios"  element={<GuardPorRol rolPermitido={1}><Ejercicios /></GuardPorRol>} />
+                  <Route path="admin/medidas"     element={<GuardPorRol rolPermitido={1}><Medidas /></GuardPorRol>} />
+                  <Route path="admin/rutinas"     element={<GuardPorRol rolPermitido={1}><Rutinas /></GuardPorRol>} />
+                  <Route path="admin/reportes"    element={<GuardPorRol rolPermitido={1}><Reportes /></GuardPorRol>} />
+                  <Route path="admin/sucursales"  element={<GuardPorRol rolPermitido={1}><Sucursales /></GuardPorRol>} />
+                  <Route path="admin/ubicaciones" element={<GuardPorRol rolPermitido={1}><Ubicaciones /></GuardPorRol>} />
 
-                  {/* Sub-rutas del Coach Protegidas pasando el ID de rol dinámico (Coach = 2) */}
-                  <Route 
-                    path="coach/dashboard" 
-                    element={
-                      <GuardPorRol rolPermitido={2}>
-                        <DashboardCoach />
-                      </GuardPorRol>
-                    } 
-                  />
-                  <Route 
-                    path="coach/cliente/:id/medidas" 
-                    element={
-                      <GuardPorRol rolPermitido={2}>
-                        <MedidaCliente />
-                      </GuardPorRol>
-                    } 
-                  />
-                  <Route 
-                    path="coach/cliente/:id/asignar" 
-                    element={
-                      <GuardPorRol rolPermitido={2}>
-                        <AsignarRutina />
-                      </GuardPorRol>
-                    } 
-                  />
-                  <Route 
-                    path="coach/rutinas/crear" 
-                    element={
-                      <GuardPorRol rolPermitido={2}>
-                        <CrearRutina />
-                      </GuardPorRol>
-                    } 
-                  />
+                  {/* Sub-rutas del Coach Protegidas (Coach = 2) */}
+                  <Route path="coach/dashboard"        element={<GuardPorRol rolPermitido={2}><DashboardCoach /></GuardPorRol>} />
+                  <Route path="coach/cliente/:id/medidas" element={<GuardPorRol rolPermitido={2}><MedidaCliente /></GuardPorRol>} />
+                  <Route path="coach/cliente/:id/asignar" element={<GuardPorRol rolPermitido={2}><AsignarRutina /></GuardPorRol>} />
+                  <Route path="coach/rutinas/crear"       element={<GuardPorRol rolPermitido={2}><CrearRutina /></GuardPorRol>} />
 
                   {/* Captura de sub-rutas no existentes dentro del sistema */}
                   <Route path="*" element={<NotFound />} />
