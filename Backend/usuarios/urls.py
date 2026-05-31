@@ -4,7 +4,7 @@ from .views import (
     UsuarioListView, UsuarioDetailView,
     LoginView,
     ClienteCoachListView, ClienteCoachDetailView,
-    ClienteDashboardView
+    ClienteDashboardView, ObtenerCoachesDisponiblesView, SolicitarAsignacionCoachView, EstadoAsignacionView
 )
 
 urlpatterns = [
@@ -24,5 +24,9 @@ urlpatterns = [
     path('cliente-coach/<int:pk>/', ClienteCoachDetailView.as_view(), name='cliente-coach-detail'),
     
     path('usuario/cliente/dashboard/<str:correo>/', ClienteDashboardView.as_view()),
+    
+    path('usuarios/coaches/disponibles/', ObtenerCoachesDisponiblesView.as_view(), name='coaches-disponibles'),
+    path('usuarios/cliente-coach/solicitar/', SolicitarAsignacionCoachView.as_view(), name='solicitar-coach'),
+    path('usuarios/cliente-coach/estado/<str:correo>/', EstadoAsignacionView.as_view(), name='estado-asignacion'),
     
 ]

@@ -19,10 +19,15 @@ import Sucursales from "./admin_pages/Sucursales";
 import Ubicaciones from "./admin_pages/Ubicaciones";
 import NotFound from "./admin_pages/NotFound";
 
+// Cliente pages
 import ClienteDashboard from "./User_pages/ClienteDashboard";
+import DatosPersonalesCliente from "./User_pages/DatosPersonalesCliente";
+import MedidasCliente from "./User_pages/MedidasCliente";
+import RutinaCliente from "./User_pages/RutinaCliente";
+import SolicitarCoachPage from "./User_pages/SolicitarCoachPage";
 
-// SEGURIDAD Y VISTAS DEL COACH (Nuevas Importaciones)
-import GuardCoach from "./components/shared/GuardCoach";
+// SEGURIDAD Y VISTAS DEL COACH
+import GuardPorRol from "./components/shared/GuardPorRol";
 import DashboardCoach from "./coach_pages/DashboardCoach";
 import MedidaCliente from "./coach_pages/MedidaCliente";
 import AsignarRutina from "./coach_pages/AsignarRutina";
@@ -56,37 +61,45 @@ function App() {
                   <Route path="sucursales"   element={<Sucursales />} />
                   <Route path="ubicaciones"  element={<Ubicaciones />} />
 
-                  {/* Sub-rutas del Coach Protegidas (id_rol === 2) */}
+                  {/* Sub-rutas del Cliente (Rol = 3 o el que corresponda) */}
+                  <Route path="cliente/dashboard" element={<ClienteDashboard />} />
+                  <Route path="cliente/dashboard/:correo" element={<ClienteDashboard />} />
+                  <Route path="cliente/datos-personales" element={<DatosPersonalesCliente />} />
+                  <Route path="cliente/medidas" element={<MedidasCliente />} />
+                  <Route path="cliente/rutina" element={<RutinaCliente />} />
+                  <Route path="cliente/solicitar-coach" element={<SolicitarCoachPage />} />
+
+                  {/* Sub-rutas del Coach Protegidas pasando el ID de rol dinámico (Coach = 2) */}
                   <Route 
                     path="coach/dashboard" 
                     element={
-                      <GuardCoach>
+                      <GuardPorRol rolPermitido={2}>
                         <DashboardCoach />
-                      </GuardCoach>
+                      </GuardPorRol>
                     } 
                   />
                   <Route 
-                    path="coach/cliente/:id/medidas" 
+                    path="coach/cliente/:correo/medidas" 
                     element={
-                      <GuardCoach>
+                      <GuardPorRol rolPermitido={2}>
                         <MedidaCliente />
-                      </GuardCoach>
+                      </GuardPorRol>
                     } 
                   />
                   <Route 
-                    path="coach/cliente/:id/asignar" 
+                    path="coach/cliente/:correo/asignar" 
                     element={
-                      <GuardCoach>
+                      <GuardPorRol rolPermitido={2}>
                         <AsignarRutina />
-                      </GuardCoach>
+                      </GuardPorRol>
                     } 
                   />
                   <Route 
                     path="coach/rutinas/crear" 
                     element={
-                      <GuardCoach>
+                      <GuardPorRol rolPermitido={2}>
                         <CrearRutina />
-                      </GuardCoach>
+                      </GuardPorRol>
                     } 
                   />
 

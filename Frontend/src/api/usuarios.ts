@@ -249,3 +249,44 @@ export interface RespuestaLogin {
   id_usuario?: number; 
   id_rol?: number;      
 }
+
+export interface CoachSucursal {
+  id_usuario: number;
+  nombre: string;
+  apellido: string;
+  correo: string;
+  telefono: string | null;
+  clientes_actuales: number;
+}
+
+export interface EstadoAsignacion {
+  id_cliente_coach: number;
+  fecha_asignacion: string;
+  id_coach: number;
+  coach_nombre: string;
+  coach_apellido: string;
+  coach_correo: string;
+  coach_telefono: string | null;
+}
+
+// Obtener coaches disponibles de la sucursal del cliente
+export const obtenerCoachesPorSucursal = async (correoCliente: string): Promise<CoachSucursal[]> => {
+  const response = await api.post('/usuarios/coaches/disponibles/', { correo_cliente: correoCliente });
+  return response.data;
+};
+
+// Solicitar asignación de coach
+export const solicitarAsignacionCoach = async (correoCliente: string, idCoach: number): Promise<{ resultado: number; mensaje: string }> => {
+  const response = await api.post('/usuarios/cliente-coach/solicitar/', {
+    correo_cliente: correoCliente,
+    id_coach: idCoach
+  });
+  return response.data;
+};
+
+// Obtener estado actual de asignación
+export const obtenerEstadoAsignacion = async (correoCliente: string): Promise<EstadoAsignacion | null> => {
+  const response = await api.get(`/usuarios/cliente-coach/estado/${encodeURIComponent(correoCliente)}/`);
+  return response.data;
+};
+

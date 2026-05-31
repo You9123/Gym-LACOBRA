@@ -2,6 +2,13 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { iniciarSesion } from "../api/usuarios";
 
+// Diccionario de enrutamiento basado en los IDs de Oracle
+const DIRECCIONES_POR_ROL: Record<number, string> = {
+  1: "/dashboard",        // Admin
+  2: "/coach/dashboard",  // Coach
+  3: "/cliente/dashboard" // Cliente (O la ruta que definas a futuro)
+};
+
 const LoginPage = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -23,20 +30,30 @@ const LoginPage = () => {
     try {
       const response = await iniciarSesion(formData);
 
-      if (response.token) {
-        localStorage.setItem("token", response.token);
+      if (response.token && response.usuario) {
+        const { id_rol, id_usuario } = response.usuario;
 
-        const usuario = response.usuario;
-        if (usuario) {
-          localStorage.setItem("usuario", JSON.stringify(usuario));
-        }
-        navigate("/dashboard");
+        // Persistencia en el almacenamiento local
+        localStorage.setItem("token", response.token);
+        localStorage.setItem("usuario", JSON.stringify(response.usuario));
+        localStorage.setItem("id_rol", String(id_rol));
+        localStorage.setItem("id_usuario", String(id_usuario));
+
+        // Redirección directa por diccionario sin condicionales if-else anidados
+        const rolNumerico = Number(id_rol) || 0;
+        const rutaDestino = DIRECCIONES_POR_ROL[rolNumerico] || "/";
+        navigate(rutaDestino);
+
       } else {
         setError("Credenciales incorrectas");
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error de login:", err);
-      setError("Error al iniciar sesión. Verificá tus credenciales.");
+      if (err.response?.data?.error) {
+        setError(err.response.data.error);
+      } else {
+        setError("Error al iniciar sesión. Verificá tus credenciales.");
+      }
     } finally {
       setLoading(false);
     }

@@ -1,10 +1,7 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { obtenerDashboardCliente, type RutinaCliente } from "../api/usuarios";
 import { obtenerDetallesPorRutina, type DetalleRutinaConNombre } from "../api/rutinas";
-
-interface Props {
-  correo: string; // Cambiado de clienteId a correo
-}
 
 function formatFecha(str: string | null | undefined): string {
   if (!str) return "—";
@@ -39,13 +36,31 @@ function FilaEjercicio({ detalle, index }: { detalle: DetalleRutinaConNombre; in
   );
 }
 
-export default function RutinaClientePage({ correo }: Props) {
-  const [rutina, setRutina]     = useState<RutinaCliente | null>(null);
+export default function RutinaCliente() {
+  const navigate = useNavigate();
+  const [rutina, setRutina] = useState<RutinaCliente | null>(null);
   const [detalles, setDetalles] = useState<DetalleRutinaConNombre[]>([]);
-  const [loading, setLoading]   = useState(true);
-  const [error, setError]       = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [correo, setCorreo] = useState<string | null>(null);
 
   useEffect(() => {
+    const sesion = localStorage.getItem("sesion");
+    if (sesion) {
+      try {
+        const parsed = JSON.parse(sesion);
+        setCorreo(parsed.correo);
+      } catch {
+        navigate("/login");
+      }
+    } else {
+      navigate("/login");
+    }
+  }, [navigate]);
+
+  useEffect(() => {
+    if (!correo) return;
+
     obtenerDashboardCliente(correo)
       .then(async (res) => {
         setRutina(res.rutina);
@@ -55,7 +70,10 @@ export default function RutinaClientePage({ correo }: Props) {
         }
         setLoading(false);
       })
-      .catch((err: Error) => { setError(err.message); setLoading(false); });
+      .catch((err: Error) => {
+        setError(err.message);
+        setLoading(false);
+      });
   }, [correo]);
 
   if (loading) return (

@@ -1,9 +1,6 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { obtenerDashboardCliente, type DatosCliente } from "../api/usuarios";
-
-interface Props {
-  correo: string; // Cambiado de clienteId a correo
-}
 
 function calcularEdad(fechaNac: string | null | undefined): number | null {
   if (!fechaNac) return null;
@@ -40,15 +37,39 @@ function Campo({ label, valor }: { label: string; valor: string | null | undefin
   );
 }
 
-export default function DatosPersonales({ correo }: Props) {
+export default function DatosPersonales() {
+  const navigate = useNavigate();
   const [datos, setDatos] = useState<DatosCliente | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [correo, setCorreo] = useState<string | null>(null);
 
   useEffect(() => {
+    const sesion = localStorage.getItem("sesion");
+    if (sesion) {
+      try {
+        const parsed = JSON.parse(sesion);
+        setCorreo(parsed.correo);
+      } catch {
+        navigate("/login");
+      }
+    } else {
+      navigate("/login");
+    }
+  }, [navigate]);
+
+  useEffect(() => {
+    if (!correo) return;
+
     obtenerDashboardCliente(correo)
-      .then((res) => { setDatos(res.datos); setLoading(false); })
-      .catch((err: Error) => { setError(err.message); setLoading(false); });
+      .then((res) => { 
+        setDatos(res.datos); 
+        setLoading(false); 
+      })
+      .catch((err: Error) => { 
+        setError(err.message); 
+        setLoading(false); 
+      });
   }, [correo]);
 
   if (loading) return (

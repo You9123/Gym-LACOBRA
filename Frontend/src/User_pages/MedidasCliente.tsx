@@ -1,9 +1,6 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { obtenerDashboardCliente, type MedidaCliente } from "../api/usuarios";
-
-interface Props {
-  correo: string; // Cambiado de clienteId a correo
-}
 
 function formatFecha(str: string | null | undefined): string {
   if (!str) return "—";
@@ -19,9 +16,7 @@ function MetricaTarjeta({ label, valor, unidad }: { label: string; valor: number
       <span className="text-2xl font-semibold text-white">
         {valor != null ? `${valor}` : "—"}
       </span>
-      {valor != null && (
-        <span className="text-xs text-slate-400">{unidad}</span>
-      )}
+      {valor != null && <span className="text-xs text-slate-400">{unidad}</span>}
     </div>
   );
 }
@@ -37,23 +32,43 @@ function MedidaCorporal({ label, valor }: { label: string; valor: number | null 
   );
 }
 
-export default function MedidasCliente({ correo }: Props) {
+export default function MedidasCliente() {
+  const navigate = useNavigate();
   const [medidas, setMedidas] = useState<MedidaCliente[]>([]);
-  const [loading, setLoading]   = useState(true);
-  const [error, setError]       = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [verHistorial, setVerHistorial] = useState(false);
+  const [correo, setCorreo] = useState<string | null>(null);
 
   useEffect(() => {
+    const sesion = localStorage.getItem("sesion");
+    if (sesion) {
+      try {
+        const parsed = JSON.parse(sesion);
+        setCorreo(parsed.correo);
+      } catch {
+        navigate("/login");
+      }
+    } else {
+      navigate("/login");
+    }
+  }, [navigate]);
+
+  useEffect(() => {
+    if (!correo) return;
+
     obtenerDashboardCliente(correo)
-      .then((res) => { 
-        // Asegurarse de que las medidas vengan ordenadas por fecha descendente
+      .then((res) => {
         const medidasOrdenadas = [...res.medidas].sort((a, b) => 
           new Date(b.fecha_medicion || 0).getTime() - new Date(a.fecha_medicion || 0).getTime()
         );
-        setMedidas(medidasOrdenadas); 
-        setLoading(false); 
+        setMedidas(medidasOrdenadas);
+        setLoading(false);
       })
-      .catch((err: Error) => { setError(err.message); setLoading(false); });
+      .catch((err: Error) => {
+        setError(err.message);
+        setLoading(false);
+      });
   }, [correo]);
 
   if (loading) return (
@@ -126,7 +141,7 @@ export default function MedidasCliente({ correo }: Props) {
                     <th className="text-right text-xs text-slate-500 uppercase tracking-wider p-3">% Grasa</th>
                     <th className="text-right text-xs text-slate-500 uppercase tracking-wider p-3">Muscular</th>
                     <th className="text-right text-xs text-slate-500 uppercase tracking-wider p-3">Cintura</th>
-                  </table>
+                  </tr>
                 </thead>
                 <tbody>
                   {anteriores.map((m) => (
@@ -136,7 +151,7 @@ export default function MedidasCliente({ correo }: Props) {
                       <td className="p-3 text-right text-slate-300">{m.porcentaje_grasa != null ? `${m.porcentaje_grasa}%` : "—"}</td>
                       <td className="p-3 text-right text-slate-300">{m.masa_muscular != null ? `${m.masa_muscular} kg` : "—"}</td>
                       <td className="p-3 text-right text-slate-300">{m.cintura != null ? `${m.cintura} cm` : "—"}</td>
-                    </table>
+                    </tr>
                   ))}
                 </tbody>
               </table>

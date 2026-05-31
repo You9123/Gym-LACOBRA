@@ -406,3 +406,66 @@ class ClienteDashboardView(APIView):
             )
 
         return Response(resultado)
+    
+    
+    
+    
+    
+    
+    
+    
+    
+class ObtenerCoachesDisponiblesView(APIView):
+    def post(self, request):
+        correo_cliente = request.data.get('correo_cliente')
+        
+        try:
+            with connection.cursor() as cursor:
+                cursor_out = connection.connection.cursor()
+                cursor.callproc('SP_OBTENER_COACHES_POR_SUCURSAL', [correo_cliente, cursor_out])
+                
+                columns = [col[0].lower() for col in cursor_out.description]
+                rows = cursor_out.fetchall()
+                
+                coaches = [dict(zip(columns, row)) for row in rows]
+                return Response(coaches)
+        except DatabaseError as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class SolicitarAsignacionCoachView(APIView):
+    def post(self, request):
+        correo_cliente = request.data.get('correo_cliente')
+        id_coach = request.data.get('id_coach')
+        
+        try:
+            with connection.cursor() as cursor:
+                resultado_var = cursor.var(int)
+                mensaje_var = cursor.var(str)
+                
+                cursor.callproc('SP_SOLICITAR_ASIGNACION_COACH', [
+                    correo_cliente, id_coach, resultado_var, mensaje_var
+                ])
+                
+                return Response({
+                    'resultado': resultado_var.getvalue(),
+                    'mensaje': mensaje_var.getvalue()
+                })
+        except DatabaseError as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class EstadoAsignacionView(APIView):
+    def get(self, request, correo):
+        try:
+            with connection.cursor() as cursor:
+                cursor_out = connection.connection.cursor()
+                cursor.callproc('SP_OBTENER_ESTADO_ASIGNACION', [correo, cursor_out])
+                
+                columns = [col[0].lower() for col in cursor_out.description]
+                row = cursor_out.fetchone()
+                
+                if row:
+                    asignacion = dict(zip(columns, row))
+                    return Response(asignacion)
+                return Response(None)
+        except DatabaseError as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
