@@ -29,7 +29,7 @@ import SolicitarCoachPage from "./User_pages/SolicitarCoachPage";
 // SEGURIDAD Y VISTAS DEL COACH
 import GuardPorRol from "./components/shared/GuardPorRol";
 import DashboardCoach from "./coach_pages/DashboardCoach";
-import MedidaCliente from "./coach_pages/MedidaCliente";
+import MedidaClienteCoach from "./coach_pages/MedidaCliente";
 import AsignarRutina from "./coach_pages/AsignarRutina";
 import CrearRutina from "./coach_pages/CrearRutina";
 
@@ -51,7 +51,7 @@ function App() {
               
               <main className="flex-1 container mx-auto p-8">
                 <Routes>
-                  {/* Sub-rutas Administrativas Protegidas con Prefijo (Admin = 1) */}
+                  {/* Sub-rutas Administrativas Protegidas (Admin = 1) */}
                   <Route path="admin/dashboard"   element={<GuardPorRol rolPermitido={1}><Dashboard /></GuardPorRol>} />
                   <Route path="admin/usuarios"    element={<GuardPorRol rolPermitido={1}><Usuarios /></GuardPorRol>} />
                   <Route path="admin/ejercicios"  element={<GuardPorRol rolPermitido={1}><Ejercicios /></GuardPorRol>} />
@@ -63,9 +63,16 @@ function App() {
 
                   {/* Sub-rutas del Coach Protegidas (Coach = 2) */}
                   <Route path="coach/dashboard"        element={<GuardPorRol rolPermitido={2}><DashboardCoach /></GuardPorRol>} />
-                  <Route path="coach/cliente/:id/medidas" element={<GuardPorRol rolPermitido={2}><MedidaCliente /></GuardPorRol>} />
+                  <Route path="coach/cliente/:id/medidas" element={<GuardPorRol rolPermitido={2}><MedidaClienteCoach /></GuardPorRol>} />
                   <Route path="coach/cliente/:id/asignar" element={<GuardPorRol rolPermitido={2}><AsignarRutina /></GuardPorRol>} />
                   <Route path="coach/rutinas/crear"       element={<GuardPorRol rolPermitido={2}><CrearRutina /></GuardPorRol>} />
+
+                  {/* ✅ SUB-RUTAS DEL CLIENTE (Agregadas aquí) */}
+                  <Route path="cliente/dashboard" element={<ClienteDashboard />} />
+                  <Route path="cliente/datos-personales" element={<DatosPersonalesCliente />} />
+                  <Route path="cliente/medidas" element={<MedidasCliente />} />
+                  <Route path="cliente/rutinas" element={<RutinaCliente />} />
+                  <Route path="cliente/solicitar-coach" element={<SolicitarCoachPage />} />
 
                   {/* Captura de sub-rutas no existentes dentro del sistema */}
                   <Route path="*" element={<NotFound />} />
