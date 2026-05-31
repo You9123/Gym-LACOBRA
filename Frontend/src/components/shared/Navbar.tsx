@@ -21,9 +21,11 @@ const MENUS_POR_ROL: Record<number, EnlaceNavegacion[]> = {
     { name: "Diseñar Rutina", path: "/coach/rutinas/crear" }
   ],
 
-  3: [ // CLIENTE / ALUMNO (A futuro)
+  3: [ // CLIENTE / ALUMNO
     { name: "Mi Progreso", path: "/cliente/dashboard" },
-    { name: "Mis Rutinas", path: "/cliente/rutinas" }
+    { name: "Mis Rutinas", path: "/cliente/rutinas" },
+    { name: "Solicitar Coach", path: "/cliente/solicitar-coach" },
+    { name: "Mis Datos", path: "/cliente/datos-personales" },
   ]
 };
 

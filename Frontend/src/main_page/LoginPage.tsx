@@ -2,13 +2,11 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { iniciarSesion } from "../api/usuarios";
 
-// Diccionario de enrutamiento basado en los IDs de Oracle
 const DIRECCIONES_POR_ROL: Record<number, string> = {
-  1: "/admin/dashboard",   // 👈 Actualizado con el prefijo
+  1: "/admin/dashboard",   
   2: "/coach/dashboard",  
   3: "/cliente/dashboard" 
 };
-
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -32,15 +30,24 @@ const LoginPage = () => {
       const response = await iniciarSesion(formData);
 
       if (response.token && response.usuario) {
-        const { id_rol, id_usuario } = response.usuario;
+        const { id_rol, id_usuario, nombre, apellido } = response.usuario;
 
-        // Persistencia en el almacenamiento local
         localStorage.setItem("token", response.token);
         localStorage.setItem("usuario", JSON.stringify(response.usuario));
         localStorage.setItem("id_rol", String(id_rol));
         localStorage.setItem("id_usuario", String(id_usuario));
+        localStorage.setItem("correo", formData.correo);
 
-        // Redirección directa por diccionario sin condicionales if-else anidados
+        const sesionData = {
+          id_usuario: id_usuario,
+          id_rol: id_rol,
+          correo: formData.correo,
+          token: response.token,
+          nombre: nombre || "",
+          apellido: apellido || ""
+        };
+        localStorage.setItem("sesion", JSON.stringify(sesionData));
+
         const rolNumerico = Number(id_rol) || 0;
         const rutaDestino = DIRECCIONES_POR_ROL[rolNumerico] || "/";
         navigate(rutaDestino);
@@ -62,17 +69,13 @@ const LoginPage = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-950 px-4">
-      {/* Glow de fondo */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
           w-[600px] h-[400px] bg-cyan-500/8 rounded-full blur-[120px]" />
       </div>
 
       <div className="relative w-full max-w-md">
-        {/* Card */}
         <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-8 shadow-2xl">
-
-          {/* Logo */}
           <div className="text-center mb-8">
             <div className="
               w-20 h-20 mx-auto mb-4 rounded-2xl
@@ -89,7 +92,6 @@ const LoginPage = () => {
             <p className="text-slate-400 text-sm mt-1">Sistema de Gestión</p>
           </div>
 
-          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-2">
@@ -156,7 +158,6 @@ const LoginPage = () => {
             </button>
           </form>
 
-          {/* Link a registro */}
           <p className="text-center text-slate-500 text-sm mt-6">
             ¿No tenés cuenta?{" "}
             <Link
@@ -168,7 +169,6 @@ const LoginPage = () => {
           </p>
         </div>
 
-        {/* Volver al inicio */}
         <div className="text-center mt-5">
           <Link
             to="/"
