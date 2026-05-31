@@ -122,3 +122,22 @@ export const calcularImc = async (payload: { peso: number; altura: number }): Pr
   const { data } = await api.post<RespuestaImc>('/medidas/calcular-imc/', payload);
   return data;
 };
+/*
+  PATCH /api/medidas/cliente/<cliente_pk>/ - Actualiza la medición actual de un cliente específico
+*/
+export const actualizarMedidaPorCliente = async (
+  clienteId: number,
+  payload: Partial<Omit<Medida, 'id_medida' | 'fecha_actualizacion'>>
+): Promise<Medida> => {
+  const { data } = await api.patch<Medida>(`/medidas/cliente/${clienteId}/`, payload);
+  return data;
+};
+/*
+  POST /api/medidas/historial/ - Inserta manualmente un registro en el historial
+*/
+export const registrarHistorial = async (
+  payload: Omit<HistorialMedida, 'id_historial'>
+): Promise<HistorialMedida> => {
+  const { data } = await api.post<HistorialMedida>('/medidas/historial/', payload);
+  return data;
+};

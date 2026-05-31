@@ -115,13 +115,31 @@ class MedidaDetailView(APIView):
 
 
 class MedidaByClienteView(APIView):
-    """GET – medida actual de un cliente específico por su ID."""
+    """GET/PATCH – medida actual de un cliente específico por su ID."""
 
     def get(self, request, cliente_pk):
         medida = get_object_or_404(Medida, id_cliente=cliente_pk)
         serializer = MedidaSerializer(medida)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    def patch(self, request, cliente_pk):
+        medida = get_object_or_404(Medida, id_cliente=cliente_pk)
+        try:
+            with connection.cursor() as cursor:
+                cursor.callproc('SP_GESTIONAR_MEDIDA', [
+                    'ACTUALIZAR',
+                    medida.id_medida,           # pk real de la fila
+                    cliente_pk,
+                    request.data.get('peso_actual'),
+                    request.data.get('altura'),
+                    request.data.get('porcentaje_grasa_actual'),
+                    request.data.get('masa_muscular_actual'),
+                ])
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        medida.refresh_from_db()
+        return Response(MedidaSerializer(medida).data, status=status.HTTP_200_OK)
 
 # ─────────────────────────────────────────────
 #  HISTORIAL DE MEDIDAS
@@ -194,3 +212,11 @@ class CalcularImcView(APIView):
             {'imc': imc, 'categoria': categoria},
             status=status.HTTP_200_OK
         )
+class HistorialMedidaCreateView(APIView):
+
+    def post(self, request):
+        serializer = HistorialMedidaSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
