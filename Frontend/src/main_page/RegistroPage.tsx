@@ -1,14 +1,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { obtenerSexos } from "../api/usuarios";
+import { obtenerSexos, crearUsuario } from "../api/usuarios";
 import { obtenerSucursales } from "../api/sucursales";
-import { obtenerDistritos } from "../api/ubicaciones";
-import { crearUsuario } from "../api/usuarios";
-
-
-interface Sexo       { id_sexo: number;     nombre: string; }
-interface Sucursal   { id_sucursal: number; nombre: string; }
-interface Distrito   { id_distrito: number; nombre: string; }
+import { obtenerDistritos, obtenerCantones } from "../api/ubicaciones";
+import type { Sexo } from "../api/usuarios";
+import type { Sucursal } from "../api/sucursales";
+import type { Distrito, Canton } from "../api/ubicaciones";
 
 const RegistroPage = () => {
   const navigate = useNavigate();
@@ -17,7 +14,9 @@ const RegistroPage = () => {
   const [sexos,      setSexos]      = useState<Sexo[]>([]);
   const [sucursales, setSucursales] = useState<Sucursal[]>([]);
   const [distritos,  setDistritos]  = useState<Distrito[]>([]);
+  const [distritosFiltrados, setDistritosFiltrados] = useState<Distrito[]>([]);
   const [loadingCat, setLoadingCat] = useState(true);
+  
 
   // Form
   const [formData, setFormData] = useState({
@@ -36,20 +35,75 @@ const RegistroPage = () => {
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState<string | null>(null);
 
+  const [cantones, setCantones] = useState<Canton[]>([]);
+
   useEffect(() => {
     Promise.all([
       obtenerSexos(),
       obtenerSucursales(),
       obtenerDistritos(),
+      obtenerCantones(),
     ])
-      .then(([s, suc, dis]) => {
+      .then(([s, suc, dis, can]) => {
         setSexos(s);
         setSucursales(suc);
         setDistritos(dis);
+        setCantones(can);
       })
       .catch(() => {})
       .finally(() => setLoadingCat(false));
   }, []);
+
+  useEffect(() => {
+    if (!formData.id_sucursal) {
+      setDistritosFiltrados([]);
+      setFormData((f) => ({ ...f, id_distrito: "" }));
+      return;
+    }
+
+    const sucursal = sucursales.find(
+      (s) => s.id_sucursal === Number(formData.id_sucursal)
+    );
+
+    if (!sucursal?.id_distrito) {
+      setDistritosFiltrados([]);
+      setFormData((f) => ({ ...f, id_distrito: "" }));
+      return;
+    }
+
+    const distritoSucursal = distritos.find(
+      (d) => d.id_distrito === sucursal.id_distrito
+    );
+
+    if (!distritoSucursal) {
+      setDistritosFiltrados([]);
+      setFormData((f) => ({ ...f, id_distrito: "" }));
+      return;
+    }
+
+    const cantonSucursal = cantones.find(
+      (c) => c.id_canton === distritoSucursal.id_canton
+    );
+
+    if (!cantonSucursal) {
+      setDistritosFiltrados([]);
+      setFormData((f) => ({ ...f, id_distrito: "" }));
+      return;
+    }
+
+    const idsCantonesProvincia = new Set(
+      cantones
+        .filter((c) => c.id_provincia === cantonSucursal.id_provincia)
+        .map((c) => c.id_canton)
+    );
+
+    const distritosMismaProvincia = distritos.filter((d) =>
+      idsCantonesProvincia.has(d.id_canton)
+    );
+
+    setDistritosFiltrados(distritosMismaProvincia);
+    setFormData((f) => ({ ...f, id_distrito: "" }));
+  }, [formData.id_sucursal, sucursales, distritos, cantones]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -300,15 +354,22 @@ const RegistroPage = () => {
                     name="id_distrito"
                     value={formData.id_distrito}
                     onChange={handleChange}
+                    disabled={!formData.id_sucursal || distritosFiltrados.length === 0}
                     className={inputCls}
-                  >
-                    <option value="">Seleccioná un distrito</option>
-                    {distritos.map((d) => (
-                      <option key={d.id_distrito} value={d.id_distrito}>
-                        {d.nombre}
-                      </option>
-                    ))}
-                  </select>
+                    >
+                      <option value="">
+                  {!formData.id_sucursal
+                  ? "Primero elegí una sucursal"
+                  : distritosFiltrados.length === 0
+                   ? "Cargando distritos..."
+                  : "Seleccioná un distrito"}
+                </option>
+              {distritosFiltrados.map((d) => (
+             <option key={d.id_distrito} value={d.id_distrito}>
+            {d.nombre}
+          </option>
+         ))}
+      </select>
                 </div>
               </div>
 
