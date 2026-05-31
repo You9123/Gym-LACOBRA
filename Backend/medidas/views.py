@@ -115,7 +115,6 @@ class MedidaDetailView(APIView):
 
 
 class MedidaByClienteView(APIView):
-    """GET/PATCH – medida actual de un cliente específico por su ID."""
 
     def get(self, request, cliente_pk):
         medida = get_object_or_404(Medida, id_cliente=cliente_pk)
@@ -123,24 +122,23 @@ class MedidaByClienteView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def patch(self, request, cliente_pk):
-        medida = get_object_or_404(Medida, id_cliente=cliente_pk)
-        try:
-            with connection.cursor() as cursor:
-                cursor.callproc('SP_GESTIONAR_MEDIDA', [
-                    'ACTUALIZAR',
-                    medida.id_medida,           # pk real de la fila
-                    cliente_pk,
-                    request.data.get('peso_actual'),
-                    request.data.get('altura'),
-                    request.data.get('porcentaje_grasa_actual'),
-                    request.data.get('masa_muscular_actual'),
-                ])
-        except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+      medida = get_object_or_404(Medida, id_cliente=cliente_pk)
+      try:
+        with connection.cursor() as cursor:
+            cursor.callproc('SP_GESTIONAR_MEDIDA', [
+                'ACTUALIZAR',
+                medida.id_medida,
+                cliente_pk,
+                request.data.get('peso_actual'),
+                request.data.get('altura'),
+                request.data.get('porcentaje_grasa_actual'),
+                request.data.get('masa_muscular_actual'),
+            ])
+      except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        medida.refresh_from_db()
-        return Response(MedidaSerializer(medida).data, status=status.HTTP_200_OK)
-
+      medida.refresh_from_db()
+      return Response(MedidaSerializer(medida).data, status=status.HTTP_200_OK)
 # ─────────────────────────────────────────────
 #  HISTORIAL DE MEDIDAS
 #  (solo lectura — lo gestiona el trigger TRG_HISTORIAL_MEDIDA)

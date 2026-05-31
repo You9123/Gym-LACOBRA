@@ -38,68 +38,89 @@ export default function MedidaCliente() {
     }
     cargarAlumno();
   }, [idCliente]);
-
 const guardarMedidasYHistorial = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrorFormulario(null);
+  e.preventDefault();
+  setErrorFormulario(null);
 
-    if (!peso || !altura) {
-      setErrorFormulario('El Peso y la Altura son campos estrictamente obligatorios.');
-      return;
+  if (!peso || !altura) {
+    setErrorFormulario('El Peso y la Altura son campos estrictamente obligatorios.');
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    // 1. Upsert en MEDIDA
+    try {
+      console.log('📤 Enviando a MEDIDA:', { idCliente, peso, altura, grasa, musculo });
+      await registrarMedida({
+        id_cliente: idCliente,
+        peso_actual: peso,
+        altura: altura,
+        porcentaje_grasa_actual: grasa || null,
+        masa_muscular_actual: musculo || null
+      });
+      console.log('✅ MEDIDA insertada');
+    } catch (medidaErr: any) {
+      console.log('⚠️ Error MEDIDA raw:', JSON.stringify(medidaErr.response?.data));
+      const responseStr = JSON.stringify(medidaErr.response?.data || '');
+      const esDuplicado =
+        responseStr.includes('Ya existe') ||
+        responseStr.includes('unique') ||
+        responseStr.includes('already exists') ||
+        medidaErr.response?.status === 400;
+
+      if (esDuplicado) {
+        console.log('🔄 Detectado duplicado, actualizando...');
+        await actualizarMedidaPorCliente(idCliente, {
+          id_cliente: idCliente,
+          peso_actual: peso,
+          altura: altura,
+          porcentaje_grasa_actual: grasa || null,
+          masa_muscular_actual: musculo || null
+        });
+        console.log('✅ MEDIDA actualizada');
+      } else {
+        throw medidaErr;
+      }
     }
 
-    setLoading(true);
-
-    try {
-      // Upsert en MEDIDA — el trigger TRG_HISTORIAL_MEDIDA se encarga del historial automáticamente
-      try {
-       // 2. Insertar perímetros en historial manualmente
+    // 2. Insertar perímetros en historial manualmente
+    console.log('📤 Enviando a HISTORIAL...');
     await registrarHistorial({
       id_cliente: idCliente,
       peso,
-     altura,
-     porcentaje_grasa: grasa || null,
-     masa_muscular: musculo || null,
-     cuello: cuello || null,
-     cintura: cintura || null,
-     cadera: cadera || null,
-     pecho: pecho || null,
-     brazo: brazo || null,
-     pierna: pierna || null,
-     fecha_medicion: new Date().toISOString().split('T')[0]
-});
-      } catch (medidaErr: any) {
-        const esDuplicado = JSON.stringify(medidaErr.response?.data || '').includes('Ya existe');
-        if (esDuplicado) {
-          await actualizarMedidaPorCliente(idCliente, {
-            id_cliente: idCliente,
-            peso_actual: peso,
-            altura: altura,
-            porcentaje_grasa_actual: grasa || null,
-            masa_muscular_actual: musculo || null
-          });
-        } else {
-          throw medidaErr;
-        }
-      }
+      altura,
+      porcentaje_grasa: grasa || null,
+      masa_muscular: musculo || null,
+      cuello: cuello || null,
+      cintura: cintura || null,
+      cadera: cadera || null,
+      pecho: pecho || null,
+      brazo: brazo || null,
+      pierna: pierna || null,
+      fecha_medicion: new Date().toISOString().split('T')[0]
+    });
+    console.log('✅ HISTORIAL insertado');
 
-      alert('¡Métricas guardadas correctamente!');
-      navigate('/coach/dashboard');
+    alert('¡Métricas guardadas correctamente!');
+    navigate('/coach/dashboard');
 
-    } catch (err: any) {
-      console.error("Error:", err);
-      if (err.response?.data) {
-        const dataBackend = err.response.data;
-        const msg = dataBackend.error || dataBackend.mensaje || dataBackend.detail || JSON.stringify(dataBackend);
-        setErrorFormulario(`Django/Oracle dice: ${msg}`);
-      } else {
-        setErrorFormulario('Error de comunicación con el servidor.');
-      }
-    } finally {
-      setLoading(false);
+  } catch (err: any) {
+    console.error("❌ Error general:", err);
+    console.error("❌ Response data:", err.response?.data);
+    console.error("❌ Message:", err.message);
+    if (err.response?.data) {
+      const dataBackend = err.response.data;
+      const msg = dataBackend.error || dataBackend.mensaje || dataBackend.detail || JSON.stringify(dataBackend);
+      setErrorFormulario(`Django/Oracle dice: ${msg}`);
+    } else {
+      setErrorFormulario(`Error de comunicación con el servidor: ${err.message}`);
     }
-  };
-
+  } finally {
+    setLoading(false);
+  }
+};
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <div>

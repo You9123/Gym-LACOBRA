@@ -16,7 +16,9 @@ class MedidaSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id_medida', 'fecha_actualizacion']
 
-
+    def get_validators(self):
+        # Elimina la validación de unicidad en PATCH
+        return []
 class HistorialMedidaSerializer(serializers.ModelSerializer):
     class Meta:
         model = HistorialMedida
