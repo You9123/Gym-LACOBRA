@@ -1,9 +1,4 @@
-// Frontend/src/api/usuarios.ts
 import api from './api';
-
-// ============================================================================
-// 1. INTERFACES DE TYPESCRIPT (Estructuras de datos mapeadas del backend)
-// ============================================================================
 
 export interface Sexo {
   id_sexo: number;
@@ -20,21 +15,20 @@ export interface Usuario {
   nombre: string;
   apellido: string;
   correo: string;
-  contrasena?: string; // Opcional ya que es write_only y no viaja en GETs
+  contrasena?: string;
   telefono?: string | null;
-  fecha_nacimiento?: string | null; // "YYYY-MM-DD"
-  fecha_registro: string; // read_only
+  fecha_nacimiento?: string | null;
+  fecha_registro: string;
   id_distrito?: number | null;
-  distrito_nombre?: string; // read_only expandido por Django
+  distrito_nombre?: string;
   id_sucursal?: number | null;
-  sucursal_nombre?: string; // read_only expandido por Django
+  sucursal_nombre?: string;
   id_sexo?: number | null;
-  sexo_nombre?: string; // read_only expandido por Django
+  sexo_nombre?: string;
   id_rol?: number | null;
-  rol_nombre?: string; // read_only expandido por Django
+  rol_nombre?: string;
 }
 
-// Interfaz optimizada para listas basada en tu UsuarioListSerializer
 export interface UsuarioLista {
   id_usuario: number;
   nombre: string;
@@ -53,131 +47,79 @@ export interface CredencialesLogin {
   contrasena: string;
 }
 
-// Estructura de respuesta típica de un Login exitoso (puedes ajustarla según tu vista)
 export interface RespuestaLogin {
-  token?: string; 
+  token?: string;
   usuario?: UsuarioLista;
   mensaje?: string;
+  id_usuario?: number;
+  id_rol?: number;
 }
 
 export interface ClienteCoach {
   id_cliente_coach: number;
   id_cliente: number;
-  cliente_nombre: string; // read_only armado por el SerializerMethodField
+  cliente_nombre: string;
   id_coach: number;
-  coach_nombre: string; // read_only armado por el SerializerMethodField
+  coach_nombre: string;
   fecha_asignacion?: string | null;
 }
 
-// ============================================================================
-// 2. PETICIONES AXIOS (Mapeadas uno a uno con sub-rutas de usuarios)
-// ============================================================================
-
-//  CATÁLOGOS 
-
-/*
-  GET /api/usuarios/sexos/ - Lista los tipos de sexo cargados de la base de datos
- */
 export const obtenerSexos = async (): Promise<Sexo[]> => {
   const { data } = await api.get<Sexo[]>('/usuarios/sexos/');
   return data;
 };
 
-/*
-  GET /api/usuarios/roles/ - Lista los roles del sistema (Admin, Coach, Cliente, etc.)
- */
 export const obtenerRoles = async (): Promise<Rol[]> => {
   const { data } = await api.get<Rol[]>('/usuarios/roles/');
   return data;
 };
 
-
-//  CONTROL DE USUARIOS 
-
-/*
-  GET /api/usuarios/usuarios/ - Retorna la lista ligera de todos los usuarios
- */
 export const obtenerUsuarios = async (): Promise<UsuarioLista[]> => {
   const { data } = await api.get<UsuarioLista[]>('/usuarios/usuarios/');
   return data;
 };
 
-/*
-  POST /api/usuarios/usuarios/ - Registra un nuevo usuario en Oracle
-  @param payload Objeto completo de usuario incluyendo contraseña
- */
 export const crearUsuario = async (payload: Omit<Usuario, 'id_usuario' | 'fecha_registro'>): Promise<Usuario> => {
   const { data } = await api.post<Usuario>('/usuarios/usuarios/', payload);
   return data;
 };
 
-/*
-  GET /api/usuarios/usuarios/<id>/ - Obtiene el perfil detallado de un usuario único
- */
 export const obtenerUsuarioPorId = async (id: number): Promise<Usuario> => {
   const { data } = await api.get<Usuario>(`/usuarios/usuarios/${id}/`);
   return data;
 };
 
-/*
-  PUT /api/usuarios/usuarios/<id>/ - Actualiza los datos del usuario en Oracle
- */
 export const actualizarUsuario = async (id: number, payload: Partial<Usuario>): Promise<Usuario> => {
   const { data } = await api.put<Usuario>(`/usuarios/usuarios/${id}/`, payload);
   return data;
 };
 
-/*
-  DELETE /api/usuarios/usuarios/<id>/ - Remueve o desactiva un usuario por ID
- */
 export const eliminarUsuario = async (id: number): Promise<{ mensaje: string }> => {
   const { data } = await api.delete<{ mensaje: string }>(`/usuarios/usuarios/${id}/`);
   return data;
 };
 
-
-// AUTENTICACIÓN 
-
-/*
-  POST /api/usuarios/auth/login/ - Envía las credenciales para validar accesos
- */
 export const iniciarSesion = async (credenciales: CredencialesLogin): Promise<RespuestaLogin> => {
   const { data } = await api.post<RespuestaLogin>('/usuarios/auth/login/', credenciales);
   return data;
 };
 
-
-//  RELACIÓN CLIENTE-COACH 
-
-/*
-  GET /api/usuarios/cliente-coach/ - Obtiene asignaciones de entrenadores
-  Permite mandar filtros opcionales como parámetros url (?coach_id=1 o ?cliente_id=2)
- */
 export const obtenerAsignacionesClienteCoach = async (filtros?: { coach_id?: number; cliente_id?: number }): Promise<ClienteCoach[]> => {
   const { data } = await api.get<ClienteCoach[]>('/usuarios/cliente-coach/', { params: filtros });
   return data;
 };
 
-/*
-  POST /api/usuarios/cliente-coach/ - Vincula un cliente con su respectivo coach
- */
 export const asignarClienteACoach = async (payload: Omit<ClienteCoach, 'id_cliente_coach' | 'cliente_nombre' | 'coach_nombre'>): Promise<ClienteCoach> => {
   const { data } = await api.post<ClienteCoach>('/usuarios/cliente-coach/', payload);
   return data;
 };
 
-/*
-  DELETE /api/usuarios/cliente-coach/<id>/ - Elimina el vínculo entre un cliente y un coach
- */
 export const eliminarAsignacionClienteCoach = async (id: number): Promise<{ mensaje: string }> => {
   const { data } = await api.delete<{ mensaje: string }>(`/usuarios/cliente-coach/${id}/`);
   return data;
 };
 
-
-
-
-// ── DASHBOARD CLIENTE (SP_OBTENER_*) ────────────────────────────────────────
+// ── DASHBOARD CLIENTE ────────────────────────────────────────
 
 export interface DatosCliente {
   id_usuario: number;
@@ -237,17 +179,7 @@ export async function obtenerDashboardCliente(correo: string): Promise<Dashboard
   const { data } = await api.get<DashboardCliente>(
     `/usuarios/usuario/cliente/dashboard/${encodeURIComponent(correo)}/`
   );
-
   return data;
-}
-
-
-export interface RespuestaLogin {
-  token?: string;
-  usuario?: UsuarioLista;
-  mensaje?: string;
-  id_usuario?: number; 
-  id_rol?: number;      
 }
 
 export interface CoachSucursal {
@@ -269,46 +201,25 @@ export interface EstadoAsignacion {
   coach_telefono: string | null;
 }
 
-// Obtener coaches disponibles de la sucursal del cliente
 export const obtenerCoachesPorSucursal = async (correoCliente: string): Promise<CoachSucursal[]> => {
   const response = await api.post('/usuarios/coaches/disponibles/', { correo_cliente: correoCliente });
   return response.data;
 };
 
-// Solicitar asignación de coach
 export const solicitarAsignacionCoach = async (correoCliente: string, idCoach: number): Promise<{ resultado: number; mensaje: string }> => {
   const response = await api.post('/usuarios/cliente-coach/solicitar/', {
     correo_cliente: correoCliente,
-    id_coach: idCoach
+    id_coach: idCoach,
   });
   return response.data;
 };
 
-// Obtener estado actual de asignación
+
 export const obtenerEstadoAsignacion = async (correoCliente: string): Promise<EstadoAsignacion | null> => {
-  const response = await api.get(`/usuarios/cliente-coach/estado/${encodeURIComponent(correoCliente)}/`);
-  return response.data;
-};
-
-export interface AlumnoPorCoach {
-  id_usuario: number;
-  nombre: string;
-  apellido: string;
-  correo: string;
-  telefono: string | null;
-  fecha_asignacion?: string | null;
-}
-
-export const obtenerAlumnosPorCoach = async (coachId: number): Promise<AlumnoPorCoach[]> => {
-  const { data } = await api.get<AlumnoPorCoach[]>(`/usuarios/usuarios/coach/${coachId}/alumnos/`);
-  return data;
-};
-
-/**
- * GET /api/usuarios/auth/me/
- * Obtiene los datos del usuario actualmente autenticado mediante el token de sesión.
- */
-export const obtenerUsuarioActual = async (): Promise<UsuarioLista> => {
-  const { data } = await api.get<UsuarioLista>('/usuarios/auth/me/');
-  return data;
+  const response = await api.get('/usuarios/cliente-coach/estado/', {
+    params: { correo: correoCliente }
+  });
+  const data = response.data;
+  if (!data || !data.id_cliente_coach) return null;
+  return data as EstadoAsignacion;
 };
