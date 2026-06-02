@@ -223,3 +223,32 @@ export const obtenerEstadoAsignacion = async (correoCliente: string): Promise<Es
   if (!data || !data.id_cliente_coach) return null;
   return data as EstadoAsignacion;
 };
+
+
+export interface AlumnoPorCoach {
+  id_usuario: number;
+  nombre: string;
+  apellido: string;
+  correo: string;
+  telefono: string | null;
+  fecha_asignacion?: string | null;
+}
+
+export const obtenerAlumnosPorCoach = async (
+  coachId: number
+): Promise<AlumnoPorCoach[]> => {
+  const { data } = await api.get<AlumnoPorCoach[]>(
+    `/usuarios/usuarios/coach/${coachId}/alumnos/`
+  );
+
+  return data;
+};
+
+export const obtenerUsuarioActual = async (): Promise<UsuarioLista> => {
+  const { data } = await api.get<UsuarioLista>(
+    '/usuarios/auth/me/'
+  );
+
+  return data;
+};
+

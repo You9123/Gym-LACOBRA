@@ -66,12 +66,12 @@ function App() {
                   <Route path="coach/cliente/:id/asignar" element={<GuardPorRol rolPermitido={2}><AsignarRutina /></GuardPorRol>} />
                   <Route path="coach/rutinas/crear"       element={<GuardPorRol rolPermitido={2}><CrearRutina /></GuardPorRol>} />
 
-                  {/* ✅ SUB-RUTAS DEL CLIENTE PROTEGIDAS (Rol = 1) */}
-                  <Route path="cliente/dashboard" element={<GuardPorRol rolPermitido={1}><ClienteDashboard /></GuardPorRol>} />
-                  <Route path="cliente/datos-personales" element={<GuardPorRol rolPermitido={1}><DatosPersonalesCliente /></GuardPorRol>} />
-                  <Route path="cliente/medidas" element={<GuardPorRol rolPermitido={1}><MedidasCliente /></GuardPorRol>} />
-                  <Route path="cliente/rutinas" element={<GuardPorRol rolPermitido={1}><RutinaCliente /></GuardPorRol>} />
-                  <Route path="cliente/solicitar-coach" element={<GuardPorRol rolPermitido={1}><SolicitarCoachPage /></GuardPorRol>} />
+                  {/* ✅ SUB-RUTAS DEL CLIENTE PROTEGIDAS (Rol = 3) */}
+                  <Route path="cliente/dashboard" element={<GuardPorRol rolPermitido={3}><ClienteDashboard /></GuardPorRol>} />
+                  <Route path="cliente/datos-personales" element={<GuardPorRol rolPermitido={3}><DatosPersonalesCliente /></GuardPorRol>} />
+                  <Route path="cliente/medidas" element={<GuardPorRol rolPermitido={3}><MedidasCliente /></GuardPorRol>} />
+                  <Route path="cliente/rutinas" element={<GuardPorRol rolPermitido={3}><RutinaCliente /></GuardPorRol>} />
+                  <Route path="cliente/solicitar-coach" element={<GuardPorRol rolPermitido={3}><SolicitarCoachPage /></GuardPorRol>} />
 
                   {/* Captura de sub-rutas no existentes dentro del sistema */}
                   <Route path="*" element={<NotFound />} />

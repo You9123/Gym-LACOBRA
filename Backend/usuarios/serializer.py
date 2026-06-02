@@ -15,64 +15,66 @@ class RolSerializer(serializers.ModelSerializer):
 
 
 class UsuarioSerializer(serializers.ModelSerializer):
-    """Serializer completo: incluye nombres de FK para lectura."""
-
-    # Campos de solo lectura que expanden las FK
     distrito_nombre = serializers.CharField(source='id_distrito.nombre', read_only=True)
     sucursal_nombre = serializers.CharField(source='id_sucursal.nombre', read_only=True)
-    sexo_nombre     = serializers.CharField(source='id_sexo.nombre',     read_only=True)
-    rol_nombre      = serializers.CharField(source='id_rol.nombre',      read_only=True)
+    sexo_nombre = serializers.CharField(source='id_sexo.nombre', read_only=True)
+    rol_nombre = serializers.CharField(source='id_rol.nombre', read_only=True)
 
     class Meta:
         model = Usuario
         fields = [
             'id_usuario',
             'nombre', 'apellido', 'correo',
-            'contrasena',         # write_only se configura abajo
+            'contrasena',
             'telefono', 'fecha_nacimiento', 'fecha_registro',
             'id_distrito', 'distrito_nombre',
             'id_sucursal', 'sucursal_nombre',
-            'id_sexo',     'sexo_nombre',
-            'id_rol',      'rol_nombre',
+            'id_sexo', 'sexo_nombre',
+            'id_rol', 'rol_nombre',
         ]
         extra_kwargs = {
-            # La contraseña nunca se devuelve en respuestas
-            'contrasena':      {'write_only': True},
-            'fecha_registro':  {'read_only': True},
+            'contrasena': {'write_only': True},
+            'fecha_registro': {'read_only': True},
         }
 
 
 class UsuarioListSerializer(serializers.ModelSerializer):
-    """Serializer ligero para listas (sin contraseña)."""
-
     sexo_nombre = serializers.CharField(source='id_sexo.nombre', read_only=True)
-    rol_nombre  = serializers.CharField(source='id_rol.nombre',  read_only=True)
+    rol_nombre = serializers.CharField(source='id_rol.nombre', read_only=True)
 
     class Meta:
         model = Usuario
         fields = [
-            'id_usuario', 'nombre', 'apellido', 'correo',
-            'telefono', 'fecha_registro',
-            'id_sexo', 'sexo_nombre',
-            'id_rol',  'rol_nombre',
+            'id_usuario',
+            'nombre',
+            'apellido',
+            'correo',
+            'telefono',
+            'fecha_registro',
+            'id_sexo',
+            'sexo_nombre',
+            'id_rol',
+            'rol_nombre',
         ]
 
 
 class LoginSerializer(serializers.Serializer):
-    correo     = serializers.EmailField()
+    correo = serializers.EmailField()
     contrasena = serializers.CharField(write_only=True)
 
 
 class ClienteCoachSerializer(serializers.ModelSerializer):
     cliente_nombre = serializers.SerializerMethodField()
-    coach_nombre   = serializers.SerializerMethodField()
+    coach_nombre = serializers.SerializerMethodField()
 
     class Meta:
         model = ClienteCoach
         fields = [
             'id_cliente_coach',
-            'id_cliente', 'cliente_nombre',
-            'id_coach',   'coach_nombre',
+            'id_cliente',
+            'cliente_nombre',
+            'id_coach',
+            'coach_nombre',
             'fecha_asignacion',
         ]
 
@@ -84,9 +86,9 @@ class ClienteCoachSerializer(serializers.ModelSerializer):
 
 
 class AlumnoPorCoachSerializer(serializers.Serializer):
-    id_usuario = serializers.IntegerField() # Viene del SELECT U.ID_USUARIO
+    id_usuario = serializers.IntegerField()
     nombre = serializers.CharField(max_length=150)
     apellido = serializers.CharField(max_length=150)
     correo = serializers.EmailField()
     telefono = serializers.CharField(max_length=50, allow_null=True, required=False)
-    fecha_asignacion = serializers.DateTimeField(required=False) # Viene del CC.FECHA_ASIGNACION
+    fecha_asignacion = serializers.DateTimeField(required=False)
