@@ -3,42 +3,39 @@ import { Link } from "react-router-dom";
 const NavbarPublic = () => {
   return (
     <header className="sticky top-0 z-50">
-      <nav className="
-        bg-[#08111f]/80
-        backdrop-blur-xl
-        border-b border-slate-800/70
-        px-10 py-5
-        flex justify-between items-center
-      ">
-        {/* LOGO — mismo que Navbar del equipo */}
-        <Link to="/" className="flex items-center gap-4 cursor-pointer">
-          <div className="
-            w-12 h-12 rounded-2xl
-            bg-gradient-to-br from-cyan-400 to-cyan-600
-            flex items-center justify-center
-            text-black font-black text-xl
-            shadow-[0_0_35px_rgba(34,211,238,0.45)]
-          ">
-            G
-          </div>
-          <div>
-            <h1 className="text-3xl font-black tracking-wide">
-              <span className="text-cyan-400">GYM</span>
-              <span className="text-white">LACOBRA</span>
-            </h1>
-            <p className="text-slate-500 text-xs tracking-[4px] uppercase">
-              Fitness Management System
-            </p>
-          </div>
+      <nav
+        className="
+          bg-[#08111f]/90
+          backdrop-blur-xl
+          border-b border-slate-800/70
+          px-8 py-3
+          flex justify-between items-center
+          gap-8
+        "
+      >
+        {/* LOGO */}
+        <Link to="/" className="flex items-center cursor-pointer group">
+          <img
+  src="/lacobra-logo.jpeg"
+  alt="GYM LACOBRA"
+  className="
+    h-28 w-[320px]
+    rounded-2xl object-cover object-left
+    shadow-[0_0_30px_rgba(34,211,238,0.18)]
+    border border-cyan-500/20
+    group-hover:border-cyan-400/40
+    transition-all duration-300
+  "
+/>
         </Link>
 
         {/* Navegación interna de la landing */}
         <ul className="hidden md:flex items-center gap-8">
           {[
-            { label: "Inicio",     href: "#hero"      },
-            { label: "Nosotros",   href: "#nosotros"  },
+            { label: "Inicio", href: "#hero" },
+            { label: "Nosotros", href: "#nosotros" },
             { label: "Sucursales", href: "#sucursales" },
-            { label: "Contacto",   href: "#contacto"  },
+            { label: "Contacto", href: "#contacto" },
           ].map(({ label, href }) => (
             <li key={href}>
               <a
@@ -59,7 +56,7 @@ const NavbarPublic = () => {
         </ul>
 
         {/* CTAs */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 shrink-0">
           <Link
             to="/login"
             className="

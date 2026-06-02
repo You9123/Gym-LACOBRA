@@ -4,13 +4,14 @@ import NavbarPublic from "./NavbarLanding";
 import SucursalPublicCard from "./SucursalCard";
 import { obtenerSucursales, type Sucursal } from "../api/sucursales";
 import Footer from "../components/shared/Footer";
+import FounderSection from "./FounderSection";
+import CoachesSection from "./CoachesSection";
 
 interface FormContacto {
   nombre: string;
   correo: string;
   mensaje: string;
 }
-
 
 
 const STATS = [
@@ -262,6 +263,8 @@ export default function HomePage() {
         </div>
       </section>
 
+      <CoachesSection />
+
       {/* ── ACCESO ────────────────────────────────────────────────────── */}
       <section id="acceso" className="px-6 py-24 max-w-4xl mx-auto w-full">
         <div className="text-center mb-14">
@@ -346,6 +349,8 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      <FounderSection />
 
       {/* ── CONTACTO ──────────────────────────────────────────────────── */}
       <section
