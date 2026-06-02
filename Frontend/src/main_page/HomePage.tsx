@@ -2,23 +2,16 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import NavbarPublic from "./NavbarLanding";
 import SucursalPublicCard from "./SucursalCard";
+import { obtenerSucursales, type Sucursal } from "../api/sucursales";
 import Footer from "../components/shared/Footer";
-
-const BASE = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
-
-interface SucursalPublica {
-  id_sucursal: number;
-  nombre: string;
-  direccion_exacta?: string | null;
-  telefono?: string | null;
-  horario?: string | null;
-}
 
 interface FormContacto {
   nombre: string;
   correo: string;
   mensaje: string;
 }
+
+
 
 const STATS = [
   { valor: "3+",    label: "Sucursales"         },
@@ -51,7 +44,7 @@ const SERVICIOS = [
 ];
 
 export default function HomePage() {
-  const [sucursales, setSucursales] = useState<SucursalPublica[]>([]);
+  const [sucursales, setSucursales] = useState<Sucursal[]>([]);
   const [loadingSuc, setLoadingSuc] = useState(true);
 
   const [formContacto, setFormContacto] = useState<FormContacto>({
@@ -62,12 +55,20 @@ export default function HomePage() {
   const [errorContacto, setErrorContacto] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch(`${BASE}/api/sucursales/publicas/`)
-      .then((r) => r.json())
-      .then((d) => setSucursales(Array.isArray(d) ? d : []))
-      .catch(() => setSucursales([]))
-      .finally(() => setLoadingSuc(false));
-  }, []);
+  const cargarSucursales = async () => {
+    try {
+      const data = await obtenerSucursales();
+      setSucursales(data);
+    } catch (error) {
+      console.error("Error al cargar sucursales:", error);
+      setSucursales([]);
+    } finally {
+      setLoadingSuc(false);
+    }
+  };
+
+  cargarSucursales();
+}, []);
 
   const handleContacto = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -1,13 +1,7 @@
-interface SucursalPublica {
-  id_sucursal: number;
-  nombre: string;
-  direccion_exacta?: string | null;
-  telefono?: string | null;
-  horario?: string | null;
-}
+import type { Sucursal } from "../api/sucursales";
 
 interface Props {
-  sucursal: SucursalPublica;
+  sucursal: Sucursal;
 }
 
 const SucursalPublicCard = ({ sucursal }: Props) => {
