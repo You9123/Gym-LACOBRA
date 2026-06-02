@@ -12,14 +12,16 @@ from .serializer import (
     ImagenSerializer,
 )
 
+import logging
+import sys
+logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
+
 
 # ─────────────────────────────────────────────
 #  CATEGORÍAS
 # ─────────────────────────────────────────────
 
 class CategoriaEjercicioListView(APIView):
-    """GET todas las categorías / POST nueva categoría."""
-
     def get(self, request):
         categorias = CategoriaEjercicio.objects.all()
         serializer = CategoriaEjercicioSerializer(categorias, many=True)
@@ -34,8 +36,6 @@ class CategoriaEjercicioListView(APIView):
 
 
 class CategoriaEjercicioDetailView(APIView):
-    """GET / PUT / DELETE una categoría por ID."""
-
     def get(self, request, pk):
         categoria = get_object_or_404(CategoriaEjercicio, pk=pk)
         serializer = CategoriaEjercicioSerializer(categoria)
@@ -63,8 +63,6 @@ class CategoriaEjercicioDetailView(APIView):
 # ─────────────────────────────────────────────
 
 class DificultadEjercicioListView(APIView):
-    """GET todas las dificultades / POST nueva dificultad."""
-
     def get(self, request):
         dificultades = DificultadEjercicio.objects.all()
         serializer = DificultadEjercicioSerializer(dificultades, many=True)
@@ -79,8 +77,6 @@ class DificultadEjercicioListView(APIView):
 
 
 class DificultadEjercicioDetailView(APIView):
-    """GET / PUT / DELETE una dificultad por ID."""
-
     def get(self, request, pk):
         dificultad = get_object_or_404(DificultadEjercicio, pk=pk)
         serializer = DificultadEjercicioSerializer(dificultad)
@@ -88,7 +84,8 @@ class DificultadEjercicioDetailView(APIView):
 
     def put(self, request, pk):
         dificultad = get_object_or_404(DificultadEjercicio, pk=pk)
-        serializer = DificultadEjercicioSerializer(dificultad, data=request.data)
+        serializer = DificultadEjercicioSerializer(
+            dificultad, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -104,15 +101,10 @@ class DificultadEjercicioDetailView(APIView):
 
 
 # ─────────────────────────────────────────────
-#  EJERCICIOS  (usa SP_GESTIONAR_EJERCICIO)
+#  EJERCICIOS (usa SP_GESTIONAR_EJERCICIO)
 # ─────────────────────────────────────────────
 
 class EjercicioListView(APIView):
-    """
-    GET  – lista todos los ejercicios.
-    POST – inserta un ejercicio llamando a SP_GESTIONAR_EJERCICIO('INSERTAR').
-    """
-
     def get(self, request):
         ejercicios = Ejercicio.objects.select_related(
             'id_categoria', 'id_dificultad'
@@ -121,45 +113,50 @@ class EjercicioListView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
-        serializer = EjercicioSerializer(data=request.data)
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        data = serializer.validated_data
         try:
+            serializer = EjercicioSerializer(data=request.data)
+            if not serializer.is_valid():
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+            data = serializer.validated_data
+            print("Datos recibidos:", data)  # temporal
+
             with connection.cursor() as cursor:
                 cursor.callproc('SP_GESTIONAR_EJERCICIO', [
                     'INSERTAR',
-                    None,                                          # P_EJERCICIO_ID
+                    None,
                     data.get('nombre'),
                     data.get('descripcion'),
                     data.get('calorias_estimadas'),
-                    data['id_categoria'].pk if data.get('id_categoria') else None,
-                    data['id_dificultad'].pk if data.get('id_dificultad') else None,
+                    data['id_categoria'].pk if data.get(
+                        'id_categoria') else None,
+                    data['id_dificultad'].pk if data.get(
+                        'id_dificultad') else None,
                 ])
-        except Exception as e:
+
+            # Obtener el último ejercicio (no fiable, pero mientras)
+            ejercicio = Ejercicio.objects.select_related(
+                'id_categoria', 'id_dificultad'
+            ).order_by('-id_ejercicio').first()
+
+            if not ejercicio:
+                return Response({'error': 'No se pudo recuperar el ejercicio creado'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
             return Response(
-                {'error': str(e)},
+                EjercicioSerializer(ejercicio).data,
+                status=status.HTTP_201_CREATED
+            )
+
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            return Response(
+                {'error': str(e), 'trace': traceback.format_exc()},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
-        # Devolver el ejercicio recién creado
-        ejercicio = Ejercicio.objects.select_related(
-            'id_categoria', 'id_dificultad'
-        ).order_by('-id_ejercicio').first()
-        return Response(
-            EjercicioSerializer(ejercicio).data,
-            status=status.HTTP_201_CREATED
-        )
-
 
 class EjercicioDetailView(APIView):
-    """
-    GET    – detalle de un ejercicio.
-    PUT    – actualiza usando SP_GESTIONAR_EJERCICIO('ACTUALIZAR').
-    DELETE – elimina usando SP_GESTIONAR_EJERCICIO('ELIMINAR').
-    """
-
     def get(self, request, pk):
         ejercicio = get_object_or_404(
             Ejercicio.objects.select_related('id_categoria', 'id_dificultad'),
@@ -183,8 +180,10 @@ class EjercicioDetailView(APIView):
                     data.get('nombre'),
                     data.get('descripcion'),
                     data.get('calorias_estimadas'),
-                    data['id_categoria'].pk if data.get('id_categoria') else None,
-                    data['id_dificultad'].pk if data.get('id_dificultad') else None,
+                    data['id_categoria'].pk if data.get(
+                        'id_categoria') else None,
+                    data['id_dificultad'].pk if data.get(
+                        'id_dificultad') else None,
                 ])
         except Exception as e:
             return Response(
@@ -218,27 +217,29 @@ class EjercicioDetailView(APIView):
 # ─────────────────────────────────────────────
 
 class ImagenListView(APIView):
-    """GET imágenes de un ejercicio / POST nueva imagen."""
-
     def get(self, request, ejercicio_pk):
         imagenes = Imagen.objects.filter(id_ejercicio=ejercicio_pk)
         serializer = ImagenSerializer(imagenes, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request, ejercicio_pk):
-        get_object_or_404(Ejercicio, pk=ejercicio_pk)
+        ejercicio = get_object_or_404(Ejercicio, pk=ejercicio_pk)
+
+        # Eliminar imágenes anteriores para evitar duplicados
+        Imagen.objects.filter(id_ejercicio=ejercicio_pk).delete()
+
         data = request.data.copy()
         data['id_ejercicio'] = ejercicio_pk
+
         serializer = ImagenSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ImagenDetailView(APIView):
-    """GET / PUT / DELETE una imagen por ID."""
-
     def get(self, request, pk):
         imagen = get_object_or_404(Imagen, pk=pk)
         serializer = ImagenSerializer(imagen)

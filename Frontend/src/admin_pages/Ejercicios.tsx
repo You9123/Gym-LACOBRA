@@ -6,7 +6,9 @@ import {
   obtenerEjercicios, 
   crearEjercicio, 
   actualizarEjercicio, 
-  eliminarEjercicio 
+  eliminarEjercicio,
+  agregarImagenAEjercicio,
+  eliminarImagenEjercicio,
 } from '../api/ejercicios';
 
 // 2. Importa la interfaz de forma explícita como un TIPO aquí abajo
@@ -37,8 +39,8 @@ const Ejercicios = () => {
       const data = await obtenerEjercicios();
       setEjercicios(Array.isArray(data) ? data : []);
     } catch (error) {
-      console.error('Error cargando ejercicios:', error);
-      setErrorMessage('Error al cargar los ejercicios');
+      console.error("Error cargando ejercicios:", error);
+      setErrorMessage("Error al cargar los ejercicios");
     } finally {
       setLoading(false);
     }
@@ -47,12 +49,47 @@ const Ejercicios = () => {
   // Se tipa el parámetro con 'any' para delegar la estructura flexible al Formulario
   const handleCreate = async (ejercicioData: any) => {
     try {
-      await crearEjercicio(ejercicioData);
+      const { rutaGif, ...datosEjercicio } = ejercicioData;
+
+      // 1. Crear el ejercicio (ignoramos el ID que devuelve el backend)
+      await crearEjercicio(datosEjercicio);
+
+      // 2. Buscar el ejercicio recién creado por sus datos exactos
+      const todos = await obtenerEjercicios();
+      const ejercicioCreado = todos.find(
+        (e) =>
+          e.nombre === datosEjercicio.nombre &&
+          e.descripcion === datosEjercicio.descripcion &&
+          e.calorias_estimadas === datosEjercicio.calorias_estimadas &&
+          e.id_categoria === datosEjercicio.id_categoria &&
+          e.id_dificultad === datosEjercicio.id_dificultad
+      );
+
+      if (!ejercicioCreado) {
+        throw new Error("No se encontró el ejercicio recién creado");
+      }
+
+      // 3. Si hay GIF, eliminar imágenes previas de ese ejercicio (por si acaso)
+      if (rutaGif?.trim()) {
+        if (ejercicioCreado.imagenes?.length) {
+          for (const img of ejercicioCreado.imagenes) {
+            await eliminarImagenEjercicio(img.id_imagen);
+          }
+        }
+
+        // 4. Guardar la nueva imagen
+        const imagenData = {
+          ruta_imagen: `/ejercicios/${rutaGif}`,
+          descripcion: `GIF ${datosEjercicio.nombre}`,
+        };
+        await agregarImagenAEjercicio(ejercicioCreado.id_ejercicio, imagenData);
+      }
+
       await cargarEjercicios();
       setShowForm(false);
     } catch (error) {
-      console.error('Error creando ejercicio:', error);
-      setErrorMessage('Error al crear el ejercicio');
+      console.error("Error creando ejercicio:", error);
+      setErrorMessage("Error al crear el ejercicio");
     }
   };
 
@@ -63,8 +100,8 @@ const Ejercicios = () => {
       await cargarEjercicios();
       setEditingEjercicio(null);
     } catch (error) {
-      console.error('Error actualizando ejercicio:', error);
-      setErrorMessage('Error al actualizar el ejercicio');
+      console.error("Error actualizando ejercicio:", error);
+      setErrorMessage("Error al actualizar el ejercicio");
     }
   };
 
@@ -82,8 +119,8 @@ const Ejercicios = () => {
         setShowConfirmDelete(false);
         setEjercicioToDelete(null);
       } catch (error) {
-        console.error('Error eliminando ejercicio:', error);
-        setErrorMessage('Error al eliminar el ejercicio');
+        console.error("Error eliminando ejercicio:", error);
+        setErrorMessage("Error al eliminar el ejercicio");
       }
     }
   };
@@ -105,33 +142,24 @@ const Ejercicios = () => {
         </button>
       </div>
 
-      {/* Modal de confirmación de eliminación */}
       {showConfirmDelete && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-slate-800 rounded-lg p-6 w-full max-w-md">
             <h2 className="text-xl font-bold mb-4 text-red-400">Eliminar Ejercicio</h2>
-            <ConfirmDelete
-              onConfirm={handleDelete}
-              onCancel={handleCancelDelete}
-            />
+            <ConfirmDelete onConfirm={handleDelete} onCancel={handleCancelDelete} />
           </div>
         </div>
       )}
 
-      {/* Modal para crear */}
       {showForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-slate-800 rounded-lg p-6 w-full max-w-md">
             <h2 className="text-xl font-bold mb-4">Nuevo Ejercicio</h2>
-            <EjercicioForm
-              onSubmit={handleCreate}
-              onCancel={() => setShowForm(false)}
-            />
+            <EjercicioForm onSubmit={handleCreate} onCancel={() => setShowForm(false)} />
           </div>
         </div>
       )}
 
-      {/* Modal para editar */}
       {editingEjercicio && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-slate-800 rounded-lg p-6 w-full max-w-md">
@@ -145,7 +173,6 @@ const Ejercicios = () => {
         </div>
       )}
 
-      {/* Modal de error */}
       {errorMessage && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-slate-900 border border-red-500/40 rounded-2xl p-6 w-full max-w-md shadow-2xl">
@@ -177,10 +204,7 @@ const Ejercicios = () => {
       ) : ejercicios.length === 0 ? (
         <div className="text-center py-10 bg-slate-800/50 rounded-lg">
           <p className="text-slate-400">No hay ejercicios registrados</p>
-          <button
-            onClick={() => setShowForm(true)}
-            className="mt-3 text-cyan-400 hover:text-cyan-300 font-semibold"
-          >
+          <button onClick={() => setShowForm(true)} className="mt-3 text-cyan-400 hover:text-cyan-300">
             Crear el primer ejercicio
           </button>
         </div>

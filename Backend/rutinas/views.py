@@ -2,6 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.db import connection
+from ejercicios.models import Imagen
 
 from .models import (
     Rutina,
@@ -343,11 +344,24 @@ class DetalleRutinaPorRutinaView(APIView):
             # Formatear la respuesta con el nombre del ejercicio
             resultado = []
             for detalle in detalles:
+
+                ruta_imagen = None
+
+                if detalle.id_ejercicio:
+
+                    imagen = Imagen.objects.filter(
+                        id_ejercicio=detalle.id_ejercicio
+                    ).first()
+
+                    if imagen:
+                        ruta_imagen = imagen.ruta_imagen
+
                 resultado.append({
                     'id_detalle_rutina': detalle.id_detalle_rutina,
                     'id_rutina': detalle.id_rutina_id,
                     'id_ejercicio': detalle.id_ejercicio_id,
                     'ejercicio_nombre': detalle.id_ejercicio.nombre if detalle.id_ejercicio else 'Sin nombre',
+                    'ruta_imagen': ruta_imagen,
                     'series': detalle.series,
                     'repeticiones': detalle.repeticiones,
                     'descanso_segundos': detalle.descanso_segundos,

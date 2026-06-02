@@ -6,6 +6,7 @@ interface DetalleEjercicio {
   id_detalle_rutina: number;
   id_ejercicio: number;
   ejercicio_nombre: string;
+  ruta_imagen?: string;
   series: number;
   repeticiones: number;
   descanso_segundos: number;
@@ -21,6 +22,9 @@ interface Props {
 }
 
 const DetalleRutinaList = ({ idRutina, rutinaNombre, onClose, onEditEjercicio, onRefresh }: Props) => {
+  const [showGifModal, setShowGifModal] = useState(false);
+  const [gifActual, setGifActual] = useState("");
+  const [nombreEjercicio, setNombreEjercicio] = useState("");
   const [detalles, setDetalles] = useState<DetalleEjercicio[]>([]);
   const [loading, setLoading] = useState(true);
   const [confirmModal, setConfirmModal] = useState<{
@@ -57,6 +61,15 @@ const DetalleRutinaList = ({ idRutina, rutinaNombre, onClose, onEditEjercicio, o
       idDetalle,
       ejercicioNombre
     });
+  };
+
+  const handleVerEjemplo = (
+  rutaImagen: string,
+  nombre: string
+  ) => {
+  setGifActual(rutaImagen);
+  setNombreEjercicio(nombre);
+  setShowGifModal(true);
   };
 
   const handleConfirmEliminar = async () => {
@@ -134,6 +147,19 @@ const DetalleRutinaList = ({ idRutina, rutinaNombre, onClose, onEditEjercicio, o
                         >
                           🗑️ Eliminar
                         </button>
+                        
+                        {detalle.ruta_imagen && (
+                        <button
+                            onClick={() => handleVerEjemplo(
+                                detalle.ruta_imagen!,
+                                detalle.ejercicio_nombre
+                            )
+                        }
+                            className="bg-cyan-600 hover:bg-cyan-500 px-3 py-1 rounded text-white"
+                        >
+                            👀 Ver Ejercicio
+                        </button>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -160,6 +186,48 @@ const DetalleRutinaList = ({ idRutina, rutinaNombre, onClose, onEditEjercicio, o
         confirmText="Sí, eliminar"
         cancelText="Cancelar"
       />
+
+      {showGifModal && (
+  <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+    <div className="bg-zinc-900 rounded-2xl p-5 max-w-lg w-full mx-4 border border-cyan-500/30">
+
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-bold text-white">
+          {nombreEjercicio}
+        </h2>
+
+        <button
+          onClick={() => setShowGifModal(false)}
+          className="text-slate-400 hover:text-white text-2xl"
+        >
+          ✕
+        </button>
+      </div>
+
+      <img
+        src={gifActual}
+        alt={nombreEjercicio}
+        className="w-full max-h-[400px] object-contain rounded-lg"
+      />
+
+      <button
+        onClick={() => setShowGifModal(false)}
+        className="
+          mt-4
+          w-full
+          bg-cyan-600
+          hover:bg-cyan-500
+          p-2
+          rounded-lg
+          text-white
+        "
+      >
+        Cerrar
+      </button>
+
+    </div>
+  </div>
+)}
     </>
   );
 };
