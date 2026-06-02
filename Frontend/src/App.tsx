@@ -31,6 +31,7 @@ import DashboardCoach from "./coach_pages/DashboardCoach";
 import MedidaClienteCoach from "./coach_pages/MedidaCliente";
 import AsignarRutina from "./coach_pages/AsignarRutina";
 import CrearRutina from "./coach_pages/CrearRutina";
+import ListaRutinas from "./coach_pages/listaRutinas";
 
 function App() {
   return (
@@ -65,6 +66,7 @@ function App() {
                   <Route path="coach/cliente/:id/medidas" element={<GuardPorRol rolPermitido={2}><MedidaClienteCoach /></GuardPorRol>} />
                   <Route path="coach/cliente/:id/asignar" element={<GuardPorRol rolPermitido={2}><AsignarRutina /></GuardPorRol>} />
                   <Route path="coach/rutinas/crear"       element={<GuardPorRol rolPermitido={2}><CrearRutina /></GuardPorRol>} />
+                  <Route path="coach/rutinas/lista"        element={<GuardPorRol rolPermitido={2}><ListaRutinas /></GuardPorRol>} />
 
                   {/* ✅ SUB-RUTAS DEL CLIENTE PROTEGIDAS (Rol = 3) */}
                   <Route path="cliente/dashboard" element={<GuardPorRol rolPermitido={3}><ClienteDashboard /></GuardPorRol>} />

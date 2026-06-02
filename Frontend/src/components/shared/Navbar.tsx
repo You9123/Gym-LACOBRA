@@ -18,7 +18,8 @@ const MENUS_POR_ROL: Record<number, EnlaceNavegacion[]> = {
   ],
   2: [ // Coach se mantiene igual
     { name: "Dashboard Coach", path: "/coach/dashboard" },
-    { name: "Diseñar Rutina", path: "/coach/rutinas/crear" }
+    { name: "Diseñar Rutina", path: "/coach/rutinas/crear" },
+    { name: "Lista de Rutinas", path: "/coach/rutinas/lista" },
   ],
 
   3: [ // CLIENTE / ALUMNO
