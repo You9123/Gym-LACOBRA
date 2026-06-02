@@ -81,3 +81,12 @@ class ClienteCoachSerializer(serializers.ModelSerializer):
 
     def get_coach_nombre(self, obj):
         return f'{obj.id_coach.nombre} {obj.id_coach.apellido}'
+
+
+class AlumnoPorCoachSerializer(serializers.Serializer):
+    id_usuario = serializers.IntegerField() # Viene del SELECT U.ID_USUARIO
+    nombre = serializers.CharField(max_length=150)
+    apellido = serializers.CharField(max_length=150)
+    correo = serializers.EmailField()
+    telefono = serializers.CharField(max_length=50, allow_null=True, required=False)
+    fecha_asignacion = serializers.DateTimeField(required=False) # Viene del CC.FECHA_ASIGNACION

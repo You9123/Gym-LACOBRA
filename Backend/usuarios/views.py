@@ -3,6 +3,7 @@ from django.db import connection, DatabaseError
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 import hashlib
 
 from .models import Sexo, Rol, Usuario, ClienteCoach
@@ -11,6 +12,53 @@ from .serializer import (
     UsuarioSerializer, UsuarioListSerializer,
     LoginSerializer, ClienteCoachSerializer,
 )
+
+from .serializer import AlumnoPorCoachSerializer
+
+class AlumnosPorCoachView(APIView):
+    def get(self, request, coach_id):
+        try:
+            with connection.cursor() as cursor:
+                # Crear cursor de salida Oracle
+                cursor_salida = cursor.connection.cursor()
+                
+                # Ejecutar el SP
+                cursor.callproc('SP_OBTENER_ALUMNOS_POR_COACH', [int(coach_id), cursor_salida])
+                
+                # Verificar que el cursor tenga datos antes de leer description
+                filas = cursor_salida.fetchall()
+                
+                if not filas:
+                    cursor_salida.close()
+                    return Response([], status=status.HTTP_200_OK)
+                
+                # Obtener columnas después del fetchall
+                columnas = [col[0].lower() for col in cursor_salida.description]
+                
+                resultados = [dict(zip(columnas, fila)) for fila in filas]
+                
+                cursor_salida.close()
+
+            serializer = AlumnoPorCoachSerializer(data=resultados, many=True)
+            if serializer.is_valid():
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            
+            # Agrega esto para ver exactamente qué está fallando
+            print("ERRORES SERIALIZER:", serializer.errors)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        except DatabaseError as e:
+            print("ERROR DB:", str(e))
+            return Response(
+                {'error': f'Error en la base de datos Oracle: {str(e)}'}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+        except Exception as e:
+            print("ERROR GENERAL:", str(e))
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 def _hash_password(raw: str) -> str:
@@ -470,3 +518,16 @@ class EstadoAsignacionView(APIView):
                 return Response(None)
         except DatabaseError as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+
+class PerfilUsuarioAutenticadoView(APIView):
+    # Obliga a que la petición traiga un token válido
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # 'request.user' contiene automáticamente al usuario que inició sesión gracias al token
+        usuario = request.user 
+        
+        # Reutilizamos tu serializer ligero para retornar sus datos seguros
+        serializer = UsuarioListSerializer(usuario)
+        return Response(serializer.data, status=status.HTTP_200_OK)

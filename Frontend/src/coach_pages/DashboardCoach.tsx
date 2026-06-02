@@ -1,42 +1,67 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { obtenerUsuarios, type UsuarioLista } from '../api/usuarios';
+import { 
+  obtenerAlumnosPorCoach, 
+  type AlumnoPorCoach 
+} from '../api/usuarios';
 import { obtenerRutinas } from '../api/rutinas';
 import { obtenerMedidas } from '../api/medidas';
 
 export default function DashboardCoach() {
   const navigate = useNavigate();
-  const coachId = Number(localStorage.getItem('id_usuario')) || 1; 
 
-  const [clientes, setClientes] = useState<UsuarioLista[]>([]);
+  // 1. Intentamos leer el ID síncronamente desde localStorage
+  const idGuardado = localStorage.getItem('id_usuario');
+  const initialCoachId = idGuardado ? Number(idGuardado) : null;
+
+  const [coachId, setCoachId] = useState<number | null>(initialCoachId);
+  const [clientes, setClientes] = useState<AlumnoPorCoach[]>([]);
   const [rutinasTotales, setRutinasTotales] = useState<number>(0);
   const [medidasTotales, setMedidasTotales] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    async function cargarDatos() {
+    // 2. Si no hay ID en localStorage, el usuario no ha iniciado sesión real. Al login.
+    if (!initialCoachId || isNaN(initialCoachId)) {
+      console.warn("No se detectó un ID de usuario válido en el almacenamiento local.");
+      navigate('/login');
+      return;
+    }
+
+    async function cargarDatos(idValidado: number) {
       try {
-        const todos = await obtenerUsuarios();
-        setClientes(todos.filter(u => u.id_rol === 3 || u.rol_nombre?.toLowerCase() === 'cliente'));
+        // Con el ID local validado, consumimos el procedimiento de Oracle de forma segura
+        const misAlumnos = await obtenerAlumnosPorCoach(idValidado);
+        setClientes(misAlumnos);
         
         const rutinas = await obtenerRutinas();
-        setRutinasTotales(rutinas.filter(r => r.id_coach === coachId).length);
+        setRutinasTotales(rutinas.filter(r => r.id_coach === idValidado).length);
 
         const medidas = await obtenerMedidas();
         setMedidasTotales(medidas.length);
+        
       } catch (err) {
-        console.error(err);
+        console.error("Error al cargar los datos del procedimiento o endpoints secundarios:", err);
+        // Evitamos mandar a /login bruscamente aquí por si el fallo fue solo un error de red 500
       } finally {
         setLoading(false);
       }
     }
-    cargarDatos();
-  }, [coachId]);
 
-  if (loading) return <div className="text-center py-12 text-slate-400">Cargando...</div>;
+    cargarDatos(initialCoachId);
+  }, [initialCoachId, navigate]);
+
+  if (loading) {
+    return (
+      <div className="text-center py-12 text-slate-400 font-medium">
+        Cargando datos del panel de control...
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
+      {/* Encabezado */}
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Panel del Coach</h1>
@@ -50,7 +75,7 @@ export default function DashboardCoach() {
         </button>
       </div>
 
-      {/* Indicadores */}
+      {/* Indicadores numéricos */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-slate-900 border border-slate-800 p-6 rounded-xl">
           <h3 className="text-sm text-slate-400 uppercase">Mis Alumnos</h3>
@@ -66,7 +91,7 @@ export default function DashboardCoach() {
         </div>
       </div>
 
-      {/* Tabla con Acciones Requeridas */}
+      {/* Tabla con los alumnos obtenidos del Procedimiento Almacenado */}
       <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
         <table className="w-full text-left border-collapse">
           <thead>
@@ -77,28 +102,42 @@ export default function DashboardCoach() {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-800 text-slate-300">
-            {clientes.map((c) => (
-              <tr key={c.id_usuario} className="hover:bg-slate-850/50 transition">
-                <td className="p-4 font-medium text-white">{c.nombre} {c.apellido}</td>
-                <td className="p-4 text-sm">{c.correo}<br/><span className="text-slate-500">{c.telefono || 'Sin tel'}</span></td>
-                <td className="p-4">
-                  <div className="flex justify-center gap-3">
-                    <button 
-                      onClick={() => navigate(`/coach/cliente/${c.id_usuario}/medidas`)}
-                      className="bg-purple-600/20 text-purple-400 border border-purple-500/30 hover:bg-purple-600 hover:text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition"
-                    >
-                      ⚖️ Tomar Medidas
-                    </button>
-                    <button 
-                      onClick={() => navigate(`/coach/cliente/${c.id_usuario}/asignar`)}
-                      className="bg-blue-600/20 text-blue-400 border border-blue-500/30 hover:bg-blue-600 hover:text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition"
-                    >
-                      📋 Asignar Rutina
-                    </button>
-                  </div>
+            {clientes.length === 0 ? (
+              <tr>
+                <td colSpan={3} className="text-center py-8 text-slate-500">
+                  No tienes alumnos asignados en la base de datos para tu ID de Coach.
                 </td>
               </tr>
-            ))}
+            ) : (
+              clientes.map((c) => (
+                <tr key={c.id_usuario} className="hover:bg-slate-850/50 transition">
+                  <td className="p-4 font-medium text-white">
+                    {c.nombre} {c.apellido}
+                  </td>
+                  <td className="p-4 text-sm">
+                    {c.correo}
+                    <br />
+                    <span className="text-slate-500">{c.telefono || 'Sin tel'}</span>
+                  </td>
+                  <td className="p-4">
+                    <div className="flex justify-center gap-3">
+                      <button 
+                        onClick={() => navigate(`/coach/cliente/${c.id_usuario}/medidas`)}
+                        className="bg-purple-600/20 text-purple-400 border border-purple-500/30 hover:bg-purple-600 hover:text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition"
+                      >
+                        ⚖️ Tomar Medidas
+                      </button>
+                      <button 
+                        onClick={() => navigate(`/coach/cliente/${c.id_usuario}/asignar`)}
+                        className="bg-blue-600/20 text-blue-400 border border-blue-500/30 hover:bg-blue-600 hover:text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition"
+                      >
+                        📋 Asignar Rutina
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

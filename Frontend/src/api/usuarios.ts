@@ -290,3 +290,25 @@ export const obtenerEstadoAsignacion = async (correoCliente: string): Promise<Es
   return response.data;
 };
 
+export interface AlumnoPorCoach {
+  id_usuario: number;
+  nombre: string;
+  apellido: string;
+  correo: string;
+  telefono: string | null;
+  fecha_asignacion?: string | null;
+}
+
+export const obtenerAlumnosPorCoach = async (coachId: number): Promise<AlumnoPorCoach[]> => {
+  const { data } = await api.get<AlumnoPorCoach[]>(`/usuarios/usuarios/coach/${coachId}/alumnos/`);
+  return data;
+};
+
+/**
+ * GET /api/usuarios/auth/me/
+ * Obtiene los datos del usuario actualmente autenticado mediante el token de sesión.
+ */
+export const obtenerUsuarioActual = async (): Promise<UsuarioLista> => {
+  const { data } = await api.get<UsuarioLista>('/usuarios/auth/me/');
+  return data;
+};
