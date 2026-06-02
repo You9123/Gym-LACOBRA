@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
+import axios from "axios";
 import { obtenerSexos, crearUsuario } from "../api/usuarios";
 import { obtenerSucursales } from "../api/sucursales";
 import { obtenerDistritos, obtenerCantones } from "../api/ubicaciones";
@@ -8,7 +9,6 @@ import type { Sucursal } from "../api/sucursales";
 import type { Distrito, Canton } from "../api/ubicaciones";
 
 const RegistroPage = () => {
-  const navigate = useNavigate();
 
   // Catálogos
   const [sexos,      setSexos]      = useState<Sexo[]>([]);
@@ -34,25 +34,30 @@ const RegistroPage = () => {
 
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
 
   const [cantones, setCantones] = useState<Canton[]>([]);
 
   useEffect(() => {
-    Promise.all([
-      obtenerSexos(),
-      obtenerSucursales(),
-      obtenerDistritos(),
-      obtenerCantones(),
-    ])
-      .then(([s, suc, dis, can]) => {
-        setSexos(s);
-        setSucursales(suc);
-        setDistritos(dis);
-        setCantones(can);
-      })
-      .catch(() => {})
-      .finally(() => setLoadingCat(false));
-  }, []);
+  Promise.all([
+    obtenerSexos(),
+    obtenerSucursales(),
+    obtenerDistritos(),
+    obtenerCantones(),
+  ])
+    .then(([s, suc, dis, can]) => {
+      setSexos(s);
+      setSucursales(suc);
+      setDistritos(dis);
+      setCantones(can);
+    })
+    .catch(() => {
+      setError(
+        "No se pudieron cargar los datos del formulario. Verificá que el backend esté encendido."
+      );
+    })
+    .finally(() => setLoadingCat(false));
+}, []);
 
   useEffect(() => {
     if (!formData.id_sucursal) {
@@ -111,37 +116,144 @@ const RegistroPage = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const obtenerMensajeError = (err: unknown): string => {
+  if (axios.isAxiosError(err)) {
+    const data = err.response?.data;
+
+    if (!err.response) {
+      return "No se pudo conectar con el servidor. Verificá que el backend esté encendido.";
+    }
+
+    if (typeof data === "string") {
+      return data;
+    }
+
+    if (data?.error) {
+      return data.error;
+    }
+
+    if (data?.detail) {
+      return data.detail;
+    }
+
+    if (typeof data === "object" && data !== null) {
+      const primerError = Object.entries(data)[0];
+
+      if (primerError) {
+        const [campo, mensaje] = primerError;
+
+        if (Array.isArray(mensaje)) {
+          return `${campo}: ${mensaje.join(", ")}`;
+        }
+
+        return `${campo}: ${String(mensaje)}`;
+      }
+    }
+
+    if (err.response.status === 400) {
+      return "Los datos enviados no son válidos. Revisá la información del formulario.";
+    }
+
+    if (err.response.status === 409) {
+      return "Ya existe una cuenta registrada con ese correo.";
+    }
+
+    if (err.response.status >= 500) {
+      return "Ocurrió un error interno en el servidor. Revisá la terminal de Django.";
+    }
+  }
+
+  return "Ocurrió un error inesperado al crear la cuenta.";
+};
   const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
+
   setError(null);
+  setSuccess(false);
+
+  if (!formData.nombre.trim()) {
+    setError("El nombre es obligatorio.");
+    return;
+  }
+
+  if (!formData.apellido.trim()) {
+    setError("El apellido es obligatorio.");
+    return;
+  }
+
+  if (!formData.correo.trim()) {
+    setError("El correo electrónico es obligatorio.");
+    return;
+  }
+
+  if (!formData.contrasena) {
+    setError("La contraseña es obligatoria.");
+    return;
+  }
+
+  if (formData.contrasena.length < 6) {
+    setError("La contraseña debe tener al menos 6 caracteres.");
+    return;
+  }
 
   if (formData.contrasena !== formData.confirmar) {
     setError("Las contraseñas no coinciden.");
     return;
   }
+
   if (!formData.id_sexo) {
     setError("Por favor seleccioná un sexo.");
     return;
   }
 
+  if (!formData.id_sucursal) {
+  setError("Por favor seleccioná una sucursal.");
+  return;
+}
+
+if (!formData.id_distrito) {
+  setError("Por favor seleccioná un distrito asociado a la sucursal.");
+  return;
+}
+
   setLoading(true);
+
   try {
     await crearUsuario({
-      nombre:           formData.nombre,
-      apellido:         formData.apellido,
-      correo:           formData.correo,
-      contrasena:       formData.contrasena,
-      telefono:         formData.telefono || null,
+      nombre: formData.nombre.trim(),
+      apellido: formData.apellido.trim(),
+      correo: formData.correo.trim().toLowerCase(),
+      contrasena: formData.contrasena,
+      telefono: formData.telefono.trim() || null,
       fecha_nacimiento: formData.fecha_nacimiento || null,
-      id_sexo:          parseInt(formData.id_sexo),
-      id_sucursal:      formData.id_sucursal ? parseInt(formData.id_sucursal) : null,
-      id_distrito:      formData.id_distrito ? parseInt(formData.id_distrito) : null,
-      id_rol:           3,
+      id_sexo: parseInt(formData.id_sexo),
+      id_sucursal: formData.id_sucursal
+        ? parseInt(formData.id_sucursal)
+        : null,
+      id_distrito: formData.id_distrito
+        ? parseInt(formData.id_distrito)
+        : null,
+      id_rol: 3,
     });
 
-    navigate("/login", { state: { registrado: true } });
+    setSuccess(true);
+
+    setFormData({
+      nombre: "",
+      apellido: "",
+      correo: "",
+      contrasena: "",
+      confirmar: "",
+      telefono: "",
+      fecha_nacimiento: "",
+      id_sexo: "",
+      id_sucursal: "",
+      id_distrito: "",
+    });
+
+    setDistritosFiltrados([]);
   } catch (err: unknown) {
-    setError(err instanceof Error ? err.message : "Error inesperado.");
+    setError(obtenerMensajeError(err));
   } finally {
     setLoading(false);
   }
@@ -183,7 +295,59 @@ const RegistroPage = () => {
             <p className="text-slate-400 text-sm mt-1">Crear cuenta</p>
           </div>
 
-          {loadingCat ? (
+          {success ? (
+  <div className="text-center space-y-6">
+    <div
+      className="
+        w-20 h-20 mx-auto rounded-full
+        bg-cyan-500/20 border border-cyan-400/50
+        flex items-center justify-center
+        text-cyan-300 text-4xl font-black
+        shadow-[0_0_35px_rgba(34,211,238,0.35)]
+      "
+    >
+      ✓
+    </div>
+
+    <div>
+      <h2 className="text-2xl font-black text-white mb-3">
+        Cuenta creada exitosamente
+      </h2>
+
+      <p className="text-slate-400 text-sm leading-6">
+        Tu usuario fue registrado correctamente. Ahora podés iniciar sesión con
+        tu correo y contraseña.
+      </p>
+    </div>
+
+    <Link
+      to="/login"
+      className="
+        block w-full py-3 rounded-lg
+        bg-gradient-to-r from-cyan-500 to-cyan-600
+        text-black font-black text-sm
+        shadow-[0_0_20px_rgba(34,211,238,0.3)]
+        hover:from-cyan-400 hover:to-cyan-500
+        hover:shadow-[0_0_30px_rgba(34,211,238,0.5)]
+        transition-all duration-200
+      "
+    >
+      Ir a inicio de sesión
+    </Link>
+
+    <button
+      type="button"
+      onClick={() => setSuccess(false)}
+      className="
+        text-slate-400 text-sm
+        hover:text-cyan-400
+        transition-colors
+      "
+    >
+      Crear otra cuenta
+    </button>
+  </div>
+) : loadingCat ? (
             <div className="flex justify-center py-10">
               <div className="animate-spin rounded-full h-10 w-10 border-b-4 border-cyan-400" />
             </div>
@@ -336,6 +500,7 @@ const RegistroPage = () => {
                     name="id_sucursal"
                     value={formData.id_sucursal}
                     onChange={handleChange}
+                    required
                     className={inputCls}
                   >
                     <option value="">Seleccioná una sucursal</option>
@@ -354,6 +519,7 @@ const RegistroPage = () => {
                     name="id_distrito"
                     value={formData.id_distrito}
                     onChange={handleChange}
+                    required
                     disabled={!formData.id_sucursal || distritosFiltrados.length === 0}
                     className={inputCls}
                     >
@@ -397,16 +563,17 @@ const RegistroPage = () => {
             </form>
           )}
 
-          {/* Link a login */}
-          <p className="text-center text-slate-500 text-sm mt-6">
-            ¿Ya tenés cuenta?{" "}
-            <Link
-              to="/login"
-              className="text-cyan-400 font-semibold hover:text-cyan-300 transition-colors"
-            >
-              Iniciar sesión
-            </Link>
-          </p>
+          {!success && (
+  <p className="text-center text-slate-500 text-sm mt-6">
+    ¿Ya tenés cuenta?{" "}
+    <Link
+      to="/login"
+      className="text-cyan-400 font-semibold hover:text-cyan-300 transition-colors"
+    >
+      Iniciar sesión
+    </Link>
+  </p>
+)}
         </div>
 
         {/* Volver al inicio */}
