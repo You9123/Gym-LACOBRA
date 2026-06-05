@@ -9,6 +9,7 @@ from .serializer import AlumnoPorCoachSerializer
 
 import hashlib
 
+from medidas.models import Medida, HistorialMedida
 from .models import Sexo, Rol, Usuario, ClienteCoach
 from .serializer import (
     SexoSerializer, RolSerializer,
@@ -189,6 +190,19 @@ class UsuarioDetailView(APIView):
             return Response({'error': 'Usuario no encontrado.'}, status=status.HTTP_404_NOT_FOUND)
 
         try:
+
+            # Eliminar historial de medidas
+            HistorialMedida.objects.filter(id_cliente=pk).delete()
+
+            # Eliminar medida actual
+            Medida.objects.filter(id_cliente=pk).delete()
+
+            # Eliminar relaciones cliente-coach donde es cliente
+            ClienteCoach.objects.filter(id_cliente=pk).delete()
+
+            # Eliminar relaciones cliente-coach donde es coach
+            ClienteCoach.objects.filter(id_coach=pk).delete()
+
             with connection.cursor() as cursor:
                 cursor.callproc('SP_GESTIONAR_USUARIO', [
                     'ELIMINAR', pk,
