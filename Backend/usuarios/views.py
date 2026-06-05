@@ -18,34 +18,37 @@ from .serializer import (
 
 from .serializer import AlumnoPorCoachSerializer
 
+
 class AlumnosPorCoachView(APIView):
     def get(self, request, coach_id):
         try:
             with connection.cursor() as cursor:
                 # Crear cursor de salida Oracle
                 cursor_salida = cursor.connection.cursor()
-                
+
                 # Ejecutar el SP
-                cursor.callproc('SP_OBTENER_ALUMNOS_POR_COACH', [int(coach_id), cursor_salida])
-                
+                cursor.callproc('SP_OBTENER_ALUMNOS_POR_COACH',
+                                [int(coach_id), cursor_salida])
+
                 # Verificar que el cursor tenga datos antes de leer description
                 filas = cursor_salida.fetchall()
-                
+
                 if not filas:
                     cursor_salida.close()
                     return Response([], status=status.HTTP_200_OK)
-                
+
                 # Obtener columnas después del fetchall
-                columnas = [col[0].lower() for col in cursor_salida.description]
-                
+                columnas = [col[0].lower()
+                            for col in cursor_salida.description]
+
                 resultados = [dict(zip(columnas, fila)) for fila in filas]
-                
+
                 cursor_salida.close()
 
             serializer = AlumnoPorCoachSerializer(data=resultados, many=True)
             if serializer.is_valid():
                 return Response(serializer.data, status=status.HTTP_200_OK)
-            
+
             # Agrega esto para ver exactamente qué está fallando
             print("ERRORES SERIALIZER:", serializer.errors)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -53,7 +56,7 @@ class AlumnosPorCoachView(APIView):
         except DatabaseError as e:
             print("ERROR DB:", str(e))
             return Response(
-                {'error': f'Error en la base de datos Oracle: {str(e)}'}, 
+                {'error': f'Error en la base de datos Oracle: {str(e)}'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
         except Exception as e:
@@ -111,10 +114,12 @@ class UsuarioListView(APIView):
                     contrasena_hash,
                     d.get('telefono'),
                     d.get('fecha_nacimiento'),
-                    d['id_distrito'].id_distrito   if d.get('id_distrito')  else None,
-                    d['id_sucursal'].id_sucursal   if d.get('id_sucursal')  else None,
-                    d['id_sexo'].id_sexo           if d.get('id_sexo')      else None,
-                    d['id_rol'].id_rol             if d.get('id_rol')       else None,
+                    d['id_distrito'].id_distrito if d.get(
+                        'id_distrito') else None,
+                    d['id_sucursal'].id_sucursal if d.get(
+                        'id_sucursal') else None,
+                    d['id_sexo'].id_sexo if d.get('id_sexo') else None,
+                    d['id_rol'].id_rol if d.get('id_rol') else None,
                 ])
         except DatabaseError as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
@@ -144,7 +149,8 @@ class UsuarioDetailView(APIView):
         if not usuario:
             return Response({'error': 'Usuario no encontrado.'}, status=status.HTTP_404_NOT_FOUND)
 
-        serializer = UsuarioSerializer(usuario, data=request.data, partial=False)
+        serializer = UsuarioSerializer(
+            usuario, data=request.data, partial=False)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -165,62 +171,12 @@ class UsuarioDetailView(APIView):
                     contrasena_hash,
                     d.get('telefono'),
                     d.get('fecha_nacimiento'),
-                    d['id_distrito'].id_distrito   if d.get('id_distrito')  else None,
-                    d['id_sucursal'].id_sucursal   if d.get('id_sucursal')  else None,
-                    d['id_sexo'].id_sexo           if d.get('id_sexo')      else None,
-                    d['id_rol'].id_rol             if d.get('id_rol')       else None,
-                ])
-        except DatabaseError as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-        return Response({'mensaje': 'Usuario actualizado correctamente.'})
-
-class PerfilUsuarioAutenticadoView(APIView):
-    # Obliga a que la petición traiga un token válido
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        # 'request.user' contiene automáticamente al usuario que inició sesión gracias al token
-        usuario = request.user 
-        
-        # Reutilizamos tu serializer ligero para retornar sus datos seguros
-        serializer = UsuarioListSerializer(usuario)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    def patch(self, request, pk):
-        usuario = self._get_object(pk)
-        if not usuario:
-            return Response({'error': 'Usuario no encontrado.'}, status=status.HTTP_404_NOT_FOUND)
-
-        serializer = UsuarioSerializer(usuario, data=request.data, partial=True)
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        d = serializer.validated_data
-        contrasena_hash = (
-            _hash_password(d['contrasena']) if d.get('contrasena')
-            else usuario.contrasena
-        )
-
-        try:
-            with connection.cursor() as cursor:
-                cursor.callproc('SP_GESTIONAR_USUARIO', [
-                    'ACTUALIZAR',
-                    pk,
-                    d.get('nombre',           usuario.nombre),
-                    d.get('apellido',         usuario.apellido),
-                    d.get('correo',           usuario.correo),
-                    contrasena_hash,
-                    d.get('telefono',         usuario.telefono),
-                    d.get('fecha_nacimiento', usuario.fecha_nacimiento),
-                    (d['id_distrito'].id_distrito   if d.get('id_distrito')
-                     else (usuario.id_distrito_id if usuario.id_distrito_id else None)),
-                    (d['id_sucursal'].id_sucursal   if d.get('id_sucursal')
-                     else (usuario.id_sucursal_id if usuario.id_sucursal_id else None)),
-                    (d['id_sexo'].id_sexo           if d.get('id_sexo')
-                     else (usuario.id_sexo_id if usuario.id_sexo_id else None)),
-                    (d['id_rol'].id_rol             if d.get('id_rol')
-                     else (usuario.id_rol_id if usuario.id_rol_id else None)),
+                    d['id_distrito'].id_distrito if d.get(
+                        'id_distrito') else None,
+                    d['id_sucursal'].id_sucursal if d.get(
+                        'id_sucursal') else None,
+                    d['id_sexo'].id_sexo if d.get('id_sexo') else None,
+                    d['id_rol'].id_rol if d.get('id_rol') else None,
                 ])
         except DatabaseError as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
@@ -245,6 +201,60 @@ class PerfilUsuarioAutenticadoView(APIView):
         return Response({'mensaje': 'Usuario eliminado correctamente.'}, status=status.HTTP_200_OK)
 
 
+class PerfilUsuarioAutenticadoView(APIView):
+    # Obliga a que la petición traiga un token válido
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # 'request.user' contiene automáticamente al usuario que inició sesión gracias al token
+        usuario = request.user
+
+        # Reutilizamos tu serializer ligero para retornar sus datos seguros
+        serializer = UsuarioListSerializer(usuario)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def patch(self, request, pk):
+        usuario = self._get_object(pk)
+        if not usuario:
+            return Response({'error': 'Usuario no encontrado.'}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = UsuarioSerializer(
+            usuario, data=request.data, partial=True)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        d = serializer.validated_data
+        contrasena_hash = (
+            _hash_password(d['contrasena']) if d.get('contrasena')
+            else usuario.contrasena
+        )
+
+        try:
+            with connection.cursor() as cursor:
+                cursor.callproc('SP_GESTIONAR_USUARIO', [
+                    'ACTUALIZAR',
+                    pk,
+                    d.get('nombre',           usuario.nombre),
+                    d.get('apellido',         usuario.apellido),
+                    d.get('correo',           usuario.correo),
+                    contrasena_hash,
+                    d.get('telefono',         usuario.telefono),
+                    d.get('fecha_nacimiento', usuario.fecha_nacimiento),
+                    (d['id_distrito'].id_distrito if d.get('id_distrito')
+                     else (usuario.id_distrito_id if usuario.id_distrito_id else None)),
+                    (d['id_sucursal'].id_sucursal if d.get('id_sucursal')
+                     else (usuario.id_sucursal_id if usuario.id_sucursal_id else None)),
+                    (d['id_sexo'].id_sexo if d.get('id_sexo')
+                     else (usuario.id_sexo_id if usuario.id_sexo_id else None)),
+                    (d['id_rol'].id_rol if d.get('id_rol')
+                     else (usuario.id_rol_id if usuario.id_rol_id else None)),
+                ])
+        except DatabaseError as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({'mensaje': 'Usuario actualizado correctamente.'})
+
+
 class LoginView(APIView):
 
     def post(self, request):
@@ -252,15 +262,15 @@ class LoginView(APIView):
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        correo     = serializer.validated_data['correo']
+        correo = serializer.validated_data['correo']
         contrasena = serializer.validated_data['contrasena']
 
         try:
             with connection.cursor() as cursor:
                 id_usuario_var = cursor.var(int)
-                id_rol_var     = cursor.var(int)
+                id_rol_var = cursor.var(int)
                 contrasena_var = cursor.var(str)
-                resultado_var  = cursor.var(int)
+                resultado_var = cursor.var(int)
 
                 cursor.callproc('SP_LOGIN_USUARIO', [
                     correo,
@@ -270,10 +280,14 @@ class LoginView(APIView):
                     resultado_var.var,
                 ])
 
-                resultado  = int(resultado_var.getvalue()) if resultado_var.getvalue() is not None else 0
-                id_usuario = int(id_usuario_var.getvalue()) if id_usuario_var.getvalue() is not None else None
-                id_rol     = int(id_rol_var.getvalue()) if id_rol_var.getvalue() is not None else None
-                hash_db    = str(contrasena_var.getvalue()).strip() if contrasena_var.getvalue() is not None else ""
+                resultado = int(resultado_var.getvalue()
+                                ) if resultado_var.getvalue() is not None else 0
+                id_usuario = int(id_usuario_var.getvalue(
+                )) if id_usuario_var.getvalue() is not None else None
+                id_rol = int(id_rol_var.getvalue()
+                             ) if id_rol_var.getvalue() is not None else None
+                hash_db = str(contrasena_var.getvalue()).strip(
+                ) if contrasena_var.getvalue() is not None else ""
 
         except DatabaseError as e:
             return Response({'error': f'Fallo de base de datos Oracle: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -309,8 +323,9 @@ class LoginView(APIView):
 class ClienteCoachListView(APIView):
 
     def get(self, request):
-        qs = ClienteCoach.objects.select_related('id_cliente', 'id_coach').all()
-        coach_id   = request.query_params.get('coach_id')
+        qs = ClienteCoach.objects.select_related(
+            'id_cliente', 'id_coach').all()
+        coach_id = request.query_params.get('coach_id')
         cliente_id = request.query_params.get('cliente_id')
         if coach_id:
             qs = qs.filter(id_coach=coach_id)
@@ -358,25 +373,29 @@ class ClienteDashboardView(APIView):
             with connection.cursor() as cursor:
 
                 cursor_out = connection.connection.cursor()
-                cursor.callproc('SP_OBTENER_DATOS_CLIENTE', [correo, cursor_out])
+                cursor.callproc('SP_OBTENER_DATOS_CLIENTE',
+                                [correo, cursor_out])
                 cols = [c[0].lower() for c in cursor_out.description]
                 row = cursor_out.fetchone()
                 resultado['datos'] = dict(zip(cols, row)) if row else {}
 
                 cursor_out2 = connection.connection.cursor()
-                cursor.callproc('SP_OBTENER_COACH_CLIENTE', [correo, cursor_out2])
+                cursor.callproc('SP_OBTENER_COACH_CLIENTE',
+                                [correo, cursor_out2])
                 cols2 = [c[0].lower() for c in cursor_out2.description]
                 row2 = cursor_out2.fetchone()
                 resultado['coach'] = dict(zip(cols2, row2)) if row2 else None
 
                 cursor_out3 = connection.connection.cursor()
-                cursor.callproc('SP_OBTENER_RUTINA_CLIENTE', [correo, cursor_out3])
+                cursor.callproc('SP_OBTENER_RUTINA_CLIENTE',
+                                [correo, cursor_out3])
                 cols3 = [c[0].lower() for c in cursor_out3.description]
                 row3 = cursor_out3.fetchone()
                 resultado['rutina'] = dict(zip(cols3, row3)) if row3 else None
 
                 cursor_out4 = connection.connection.cursor()
-                cursor.callproc('SP_OBTENER_HISTORIAL_MEDIDAS', [correo, cursor_out4])
+                cursor.callproc('SP_OBTENER_HISTORIAL_MEDIDAS',
+                                [correo, cursor_out4])
                 cols4 = [c[0].lower() for c in cursor_out4.description]
                 rows4 = cursor_out4.fetchall()
                 resultado['medidas'] = [dict(zip(cols4, r)) for r in rows4]
@@ -391,7 +410,7 @@ class ObtenerCoachesDisponiblesView(APIView):
     def post(self, request):
         correo_cliente = request.data.get('correo_cliente')
         print(f"[DEBUG] Correo recibido: '{correo_cliente}'")
-        
+
         if not correo_cliente:
             return Response({'error': 'Correo no proporcionado'}, status=400)
 
@@ -413,7 +432,7 @@ class ObtenerCoachesDisponiblesView(APIView):
                           WHERE CORREO = :correo AND ROWNUM = 1
                       )
                 """, {'correo': correo_cliente})
-                
+
                 columns = [col[0].lower() for col in cursor.description]
                 rows = cursor.fetchall()
                 coaches = [dict(zip(columns, row)) for row in rows]
@@ -438,8 +457,8 @@ class SolicitarAsignacionCoachView(APIView):
                 cursor.callproc('SP_SOLICITAR_ASIGNACION_COACH', [
                     correo_cliente,
                     id_coach,
-                    resultado_var.var,  
-                    mensaje_var.var,   
+                    resultado_var.var,
+                    mensaje_var.var,
                 ])
 
                 return Response({
@@ -458,7 +477,8 @@ class EstadoAsignacionView(APIView):
         try:
             with connection.cursor() as cursor:
                 cursor_out = connection.connection.cursor()
-                cursor.callproc('SP_OBTENER_ESTADO_ASIGNACION', [correo, cursor_out])
+                cursor.callproc('SP_OBTENER_ESTADO_ASIGNACION',
+                                [correo, cursor_out])
                 columns = [col[0].lower() for col in cursor_out.description]
                 row = cursor_out.fetchone()
                 if row:
@@ -468,9 +488,8 @@ class EstadoAsignacionView(APIView):
                 return Response(None, status=status.HTTP_200_OK)
         except DatabaseError as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
-        
-        
+
+
 class DebugClienteView(APIView):
     def get(self, request, correo):
         try:
@@ -504,7 +523,6 @@ class DebugClienteView(APIView):
             return Response({'error': str(e)}, status=500)
 
 
-
 class AlumnosPorCoachView(APIView):
     def get(self, request, coach_id):
         try:
@@ -522,7 +540,8 @@ class AlumnosPorCoachView(APIView):
                     cursor_salida.close()
                     return Response([], status=status.HTTP_200_OK)
 
-                columnas = [col[0].lower() for col in cursor_salida.description]
+                columnas = [col[0].lower()
+                            for col in cursor_salida.description]
 
                 resultados = [
                     dict(zip(columnas, fila))
@@ -549,8 +568,8 @@ class AlumnosPorCoachView(APIView):
                 {'error': str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-            
-            
+
+
 class PerfilUsuarioAutenticadoView(APIView):
     permission_classes = [IsAuthenticated]
 

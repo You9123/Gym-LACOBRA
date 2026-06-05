@@ -70,7 +70,6 @@ const Rutinas = () => {
     try {
       await agregarEjercicioADetalle(detalleData);
       setShowAddExerciseModal(false);
-      alert('Ejercicio agregado correctamente');
     } catch (error: any) {
       console.error('Error agregando ejercicio:', error);
       alert(`Error: ${error.response?.data?.error || error.message}`);

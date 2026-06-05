@@ -197,6 +197,9 @@ class EjercicioDetailView(APIView):
     def delete(self, request, pk):
         get_object_or_404(Ejercicio, pk=pk)
         try:
+
+            Imagen.objects.filter(id_ejercicio=pk).delete()
+
             with connection.cursor() as cursor:
                 cursor.callproc('SP_GESTIONAR_EJERCICIO', [
                     'ELIMINAR', pk, None, None, None, None, None
