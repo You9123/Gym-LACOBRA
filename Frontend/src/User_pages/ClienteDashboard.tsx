@@ -113,8 +113,11 @@ function CoachCard({ coach }: { coach: CoachCliente | null }) {
   );
 }
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> 85eab09bcd771bdf0ef07b1b4a41d2c0bd95ee65
 function RutinaCard({ rutina }: { rutina: RutinaCliente | null }) {
   if (!rutina) return <EmptyState mensaje="No tienes una rutina activa asignada." />;
   return (
@@ -258,6 +261,7 @@ export default function ClienteDashboard() {
         <RutinaCard rutina={data.rutina} />
       </SectionCard>
 
+<<<<<<< HEAD
 
 
       <SectionCard title="Medidas corporales" icon="ti-chart-line">
@@ -274,6 +278,11 @@ export default function ClienteDashboard() {
     </SectionCard>
 
     
+=======
+      <SectionCard title="Medidas corporales" icon="ti-chart-line">
+        <MedidasCard medidas={data.medidas} />
+      </SectionCard>
+>>>>>>> 85eab09bcd771bdf0ef07b1b4a41d2c0bd95ee65
     </div>
   );
 }
