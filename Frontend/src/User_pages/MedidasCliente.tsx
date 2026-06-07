@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-<<<<<<< HEAD
 import { useParams, useNavigate } from "react-router-dom";
 import { obtenerDashboardCliente, type MedidaCliente } from "../api/usuarios";
 import {
@@ -195,26 +194,6 @@ function GraficoMedidas({ medidas }: { medidas: MedidaCliente[] }) {
         <span className="text-slate-700">→</span>
         <span>{ultimo.fechaLarga}</span>
       </div>
-=======
-import { useNavigate } from "react-router-dom";
-import { obtenerDashboardCliente, type MedidaCliente } from "../api/usuarios";
-
-function formatFecha(str: string | null | undefined): string {
-  if (!str) return "—";
-  return new Date(str).toLocaleDateString("es-CR", {
-    day: "2-digit", month: "short", year: "numeric",
-  });
-}
-
-function MetricaTarjeta({ label, valor, unidad }: { label: string; valor: number | null | undefined; unidad: string }) {
-  return (
-    <div className="flex flex-col gap-1 bg-slate-800 rounded-xl p-4 border border-slate-700">
-      <span className="text-xs text-slate-500 uppercase tracking-wider">{label}</span>
-      <span className="text-2xl font-semibold text-white">
-        {valor != null ? `${valor}` : "—"}
-      </span>
-      {valor != null && <span className="text-xs text-slate-400">{unidad}</span>}
->>>>>>> 85eab09bcd771bdf0ef07b1b4a41d2c0bd95ee65
     </div>
   );
 }
@@ -230,34 +209,23 @@ function MedidaCorporal({ label, valor }: { label: string; valor: number | null 
   );
 }
 
-<<<<<<< HEAD
 // ─────────────────────────────────────────────────────────────
 //  Componente principal
 // ─────────────────────────────────────────────────────────────
 export default function MedidasPage() {
   const { correo: correoParam } = useParams();
-=======
-export default function MedidasCliente() {
->>>>>>> 85eab09bcd771bdf0ef07b1b4a41d2c0bd95ee65
   const navigate = useNavigate();
   const [medidas, setMedidas] = useState<MedidaCliente[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [verHistorial, setVerHistorial] = useState(false);
-<<<<<<< HEAD
 
   // Obtener correo desde parámetro o localStorage
   const correo = correoParam ?? (() => {
-=======
-  const [correo, setCorreo] = useState<string | null>(null);
-
-  useEffect(() => {
->>>>>>> 85eab09bcd771bdf0ef07b1b4a41d2c0bd95ee65
     const sesion = localStorage.getItem("sesion");
     if (sesion) {
       try {
         const parsed = JSON.parse(sesion);
-<<<<<<< HEAD
         return parsed.correo;
       } catch {
         return null;
@@ -282,26 +250,6 @@ export default function MedidasCliente() {
             new Date(a.fecha_medicion || 0).getTime()
         );
         setMedidas(ordenadas);
-=======
-        setCorreo(parsed.correo);
-      } catch {
-        navigate("/login");
-      }
-    } else {
-      navigate("/login");
-    }
-  }, [navigate]);
-
-  useEffect(() => {
-    if (!correo) return;
-
-    obtenerDashboardCliente(correo)
-      .then((res) => {
-        const medidasOrdenadas = [...res.medidas].sort((a, b) => 
-          new Date(b.fecha_medicion || 0).getTime() - new Date(a.fecha_medicion || 0).getTime()
-        );
-        setMedidas(medidasOrdenadas);
->>>>>>> 85eab09bcd771bdf0ef07b1b4a41d2c0bd95ee65
         setLoading(false);
       })
       .catch((err: Error) => {
@@ -310,7 +258,6 @@ export default function MedidasCliente() {
       });
   }, [correo]);
 
-<<<<<<< HEAD
   if (loading) {
     return (
       <div className="flex justify-center py-12">
@@ -334,28 +281,6 @@ export default function MedidasCliente() {
       </div>
     );
   }
-=======
-  if (loading) return (
-    <div className="flex items-center justify-center h-40 text-slate-500 text-sm">
-      Cargando medidas…
-    </div>
-  );
-
-  if (error) return (
-    <div className="rounded-xl bg-red-950 border border-red-800 text-red-300 text-sm p-4">
-      {error}
-    </div>
-  );
-
-  if (medidas.length === 0) return (
-    <div className="flex flex-col gap-3">
-      <h2 className="text-lg font-semibold text-white">Medidas corporales</h2>
-      <div className="rounded-xl bg-slate-900 border border-slate-800 p-6 text-center text-slate-500 text-sm">
-        Sin registros de medidas aún.
-      </div>
-    </div>
-  );
->>>>>>> 85eab09bcd771bdf0ef07b1b4a41d2c0bd95ee65
 
   const ultima = medidas[0];
   const anteriores = medidas.slice(1);
@@ -363,7 +288,6 @@ export default function MedidasCliente() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
-<<<<<<< HEAD
         <h2 className="text-lg font-semibold text-white">Historial de medidas</h2>
         <button
           onClick={() => navigate(-1)}
@@ -444,56 +368,10 @@ export default function MedidasCliente() {
                     <th className="text-right text-xs text-slate-500 uppercase p-3">% Grasa</th>
                     <th className="text-right text-xs text-slate-500 uppercase p-3">Muscular (kg)</th>
                     <th className="text-right text-xs text-slate-500 uppercase p-3">Cintura (cm)</th>
-=======
-        <h2 className="text-lg font-semibold text-white">Medidas corporales</h2>
-        <span className="text-xs text-slate-500">
-          Última medición: {formatFecha(ultima.fecha_medicion)}
-        </span>
-      </div>
-
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <MetricaTarjeta label="Peso" valor={ultima.peso} unidad="kg" />
-        <MetricaTarjeta label="Altura" valor={ultima.altura} unidad="m" />
-        <MetricaTarjeta label="% Grasa" valor={ultima.porcentaje_grasa} unidad="%" />
-        <MetricaTarjeta label="Masa muscular" valor={ultima.masa_muscular} unidad="kg" />
-      </div>
-
-      <div className="bg-slate-900 rounded-xl border border-slate-800 p-5">
-        <p className="text-xs text-slate-500 uppercase tracking-wider mb-3">Circunferencias</p>
-        <MedidaCorporal label="Cuello" valor={ultima.cuello} />
-        <MedidaCorporal label="Pecho" valor={ultima.pecho} />
-        <MedidaCorporal label="Brazo" valor={ultima.brazo} />
-        <MedidaCorporal label="Cintura" valor={ultima.cintura} />
-        <MedidaCorporal label="Cadera" valor={ultima.cadera} />
-        <MedidaCorporal label="Pierna" valor={ultima.pierna} />
-      </div>
-
-      {anteriores.length > 0 && (
-        <div className="flex flex-col gap-3">
-          <button
-            onClick={() => setVerHistorial(!verHistorial)}
-            className="flex items-center gap-2 text-sm text-indigo-400 hover:text-indigo-300 transition-colors w-fit"
-          >
-            <span>{verHistorial ? "▲" : "▼"}</span>
-            {verHistorial ? "Ocultar historial" : `Ver historial (${anteriores.length} registros anteriores)`}
-          </button>
-
-          {verHistorial && (
-            <div className="bg-slate-900 rounded-xl border border-slate-800 overflow-hidden">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-slate-800">
-                    <th className="text-left text-xs text-slate-500 uppercase tracking-wider p-3">Fecha</th>
-                    <th className="text-right text-xs text-slate-500 uppercase tracking-wider p-3">Peso</th>
-                    <th className="text-right text-xs text-slate-500 uppercase tracking-wider p-3">% Grasa</th>
-                    <th className="text-right text-xs text-slate-500 uppercase tracking-wider p-3">Muscular</th>
-                    <th className="text-right text-xs text-slate-500 uppercase tracking-wider p-3">Cintura</th>
->>>>>>> 85eab09bcd771bdf0ef07b1b4a41d2c0bd95ee65
                   </tr>
                 </thead>
                 <tbody>
                   {anteriores.map((m) => (
-<<<<<<< HEAD
                     <tr
                       key={m.id_historial}
                       className="border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors"
@@ -511,14 +389,6 @@ export default function MedidasCliente() {
                       <td className="p-3 text-right text-slate-200">
                         {m.cintura != null ? m.cintura : "—"}
                       </td>
-=======
-                    <tr key={m.id_historial} className="border-b border-slate-800/50 last:border-0 hover:bg-slate-800/40 transition-colors">
-                      <td className="p-3 text-slate-400">{formatFecha(m.fecha_medicion)}</td>
-                      <td className="p-3 text-right text-slate-300">{m.peso != null ? `${m.peso} kg` : "—"}</td>
-                      <td className="p-3 text-right text-slate-300">{m.porcentaje_grasa != null ? `${m.porcentaje_grasa}%` : "—"}</td>
-                      <td className="p-3 text-right text-slate-300">{m.masa_muscular != null ? `${m.masa_muscular} kg` : "—"}</td>
-                      <td className="p-3 text-right text-slate-300">{m.cintura != null ? `${m.cintura} cm` : "—"}</td>
->>>>>>> 85eab09bcd771bdf0ef07b1b4a41d2c0bd95ee65
                     </tr>
                   ))}
                 </tbody>
