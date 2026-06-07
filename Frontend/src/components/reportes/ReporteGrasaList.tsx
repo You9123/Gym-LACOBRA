@@ -1,8 +1,11 @@
-import { useEffect, useState } from "react";
-import { obtenerReporteGrasa, type ReporteGrasa } from "../../api/reportes";
+import { useEffect, useState, useRef } from "react";
+import { obtenerReporteGrasa, obtenerEvolucionGrasa, type ReporteGrasa, type EvolucionGrasa } from "../../api/reportes";
 import ReporteGrasaCard from "./ReporteGrasaCard";
+import {
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
+} from "recharts";
+import { exportToPDF } from "./pdfExport"; // Ajusta la ruta según tu proyecto
 
-// ✅ Agregar la prop umbral
 interface Props {
   umbral: number;
 }
@@ -11,23 +14,52 @@ const ReporteGrasaList = ({ umbral }: Props) => {
   const [reportes, setReportes] = useState<ReporteGrasa[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [evolucion, setEvolucion] = useState<EvolucionGrasa[]>([]);
+  const [cargandoEvolucion, setCargandoEvolucion] = useState(false);
+  const [errorEvolucion, setErrorEvolucion] = useState<string | null>(null);
+  const reportRef = useRef<HTMLDivElement>(null);
 
+  // Cargar clientes (siempre)
   useEffect(() => {
-    const cargar = async () => {
+    const cargarClientes = async () => {
       try {
         setLoading(true);
         const data = await obtenerReporteGrasa(umbral);
         setReportes(data);
         setError(null);
-      } catch (error) {
-        console.error(error);
+      } catch (err) {
+        console.error(err);
         setError("Error al cargar el reporte");
       } finally {
         setLoading(false);
       }
     };
-    cargar();
+    cargarClientes();
   }, [umbral]);
+
+  // Cargar evolución (opcional, no bloquea)
+  useEffect(() => {
+    const cargarEvolucion = async () => {
+      try {
+        setCargandoEvolucion(true);
+        const data = await obtenerEvolucionGrasa(umbral);
+        setEvolucion(data);
+        setErrorEvolucion(null);
+      } catch (err) {
+        console.warn("No se pudo cargar la evolución (endpoint quizás no implementado):", err);
+        setErrorEvolucion("Gráfico no disponible");
+      } finally {
+        setCargandoEvolucion(false);
+      }
+    };
+    cargarEvolucion();
+  }, [umbral]);
+
+  const handleExportPDF = () => {
+    if (reportRef.current) {
+      exportToPDF("reporte-pdf-content", `reporte_grasa_umbral_${umbral}`);
+    }
+  };
 
   if (loading) {
     return (
@@ -59,10 +91,66 @@ const ReporteGrasaList = ({ umbral }: Props) => {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      {reportes.map((rep) => (
-        <ReporteGrasaCard key={rep.id_usuario} reporte={rep} />
-      ))}
+    <div>
+      {/* Botón de exportación */}
+      <div className="flex justify-end mb-4">
+        <button
+          onClick={handleExportPDF}
+          className="bg-indigo-600 hover:bg-indigo-700 px-4 py-2 rounded-lg text-sm flex items-center gap-2 transition-colors"
+        >
+          📄 Exportar a PDF
+        </button>
+      </div>
+
+      {/* Contenido que se capturará para el PDF */}
+      <div id="reporte-pdf-content" ref={reportRef} className="bg-slate-900 p-6 rounded-xl">
+        <h2 className="text-xl font-bold text-white mb-2">
+          Reporte de clientes con grasa corporal &gt; {umbral}%
+        </h2>
+        <p className="text-slate-400 text-sm mb-6">
+          Generado el {new Date().toLocaleDateString()}
+        </p>
+
+        {/* Gráfico de evolución (solo si hay datos y sin error) */}
+        {!cargandoEvolucion && !errorEvolucion && evolucion.length > 0 && (
+          <div className="mb-8 bg-slate-800/50 p-4 rounded-lg">
+            <h3 className="text-md font-semibold text-cyan-400 mb-3">
+              Evolución del promedio de grasa corporal
+            </h3>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={evolucion}>
+                  <CartesianGrid stroke="#334155" strokeDasharray="3 3" />
+                  <XAxis dataKey="fecha" tick={{ fill: "#94a3b8" }} />
+                  <YAxis tick={{ fill: "#94a3b8" }} />
+                  <Tooltip contentStyle={{ backgroundColor: "#1e293b", border: "none" }} />
+                  <Line
+                    type="monotone"
+                    dataKey="promedio_grasa"
+                    stroke="#f87171"
+                    strokeWidth={2}
+                    dot={{ r: 3 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        )}
+
+        {/* Mensaje si el gráfico no está disponible */}
+        {!cargandoEvolucion && errorEvolucion && (
+          <div className="mb-8 text-center text-slate-500 text-sm p-4 bg-slate-800/30 rounded-lg">
+            📈 Gráfico de evolución no disponible (endpoint pendiente)
+          </div>
+        )}
+
+        {/* Tarjetas de clientes */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {reportes.map((rep) => (
+            <ReporteGrasaCard key={rep.id_usuario} reporte={rep} />
+          ))}
+        </div>
+      </div>
     </div>
   );
 };

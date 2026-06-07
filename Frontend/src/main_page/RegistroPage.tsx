@@ -113,7 +113,16 @@ const RegistroPage = () => {
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+
+    // Limpiar y limitar el teléfono a solo números y máximo 8 dígitos
+    if (name === "telefono") {
+      const soloNumeros = value.replace(/\D/g, "").slice(0, 8);
+      setFormData({ ...formData, telefono: soloNumeros });
+      return;
+    }
+
+    setFormData({ ...formData, [name]: value });
   };
 
   const obtenerMensajeError = (err: unknown): string => {
@@ -165,6 +174,7 @@ const RegistroPage = () => {
 
   return "Ocurrió un error inesperado al crear la cuenta.";
 };
+
   const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
 
@@ -213,6 +223,12 @@ const RegistroPage = () => {
 
 if (!formData.id_distrito) {
   setError("Por favor seleccioná un distrito asociado a la sucursal.");
+  return;
+}
+
+// Validar teléfono: si se ingresó, debe tener exactamente 8 dígitos
+if (formData.telefono && formData.telefono.length !== 8) {
+  setError("El número de teléfono debe tener exactamente 8 dígitos.");
   return;
 }
 
@@ -451,7 +467,9 @@ if (!formData.id_distrito) {
                     name="telefono"
                     value={formData.telefono}
                     onChange={handleChange}
-                    placeholder="8888-8888"
+                    placeholder="88888888"
+                    maxLength={8}
+                    pattern="[0-9]{8}"
                     className={inputCls}
                   />
                 </div>

@@ -17,3 +17,13 @@ export const obtenerReporteGrasa = async (umbral: number = 25): Promise<ReporteG
   });
   return data;
 };
+
+export interface EvolucionGrasa {
+  fecha: string;
+  promedio_grasa: number;
+}
+
+export const obtenerEvolucionGrasa = async (umbral: number = 25): Promise<EvolucionGrasa[]> => {
+  const { data } = await api.get('/reportes/grasa/evolucion/', { params: { umbral } });
+  return data;
+};
