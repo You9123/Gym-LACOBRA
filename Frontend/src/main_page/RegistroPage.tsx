@@ -149,13 +149,13 @@ const RegistroPage = () => {
       const primerError = Object.entries(data)[0];
 
       if (primerError) {
-        const [campo, mensaje] = primerError;
+        const [, mensaje] = primerError;
 
         if (Array.isArray(mensaje)) {
-          return `${campo}: ${mensaje.join(", ")}`;
+          return  mensaje.join(", ");
         }
 
-        return `${campo}: ${String(mensaje)}`;
+        return String(mensaje);
       }
     }
 

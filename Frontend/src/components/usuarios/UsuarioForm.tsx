@@ -14,7 +14,6 @@ const UsuarioForm = ({ initialData, onSubmit, onCancel }: UsuarioFormProps) => {
   const [sexos, setSexos] = useState([]);
   const [sucursales, setSucursales] = useState([]);
   const [distritos, setDistritos] = useState([]);
-  
   const [formData, setFormData] = useState({
     nombre: initialData?.nombre || '',
     apellido: initialData?.apellido || '',
@@ -87,6 +86,11 @@ const UsuarioForm = ({ initialData, onSubmit, onCancel }: UsuarioFormProps) => {
     onSubmit(datosEnvio);
   };
 
+  const fechaMaxima = new Date();
+  fechaMaxima.setFullYear(fechaMaxima.getFullYear() - 14);
+
+  const maxDate = fechaMaxima.toISOString().split('T')[0];
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {/* Datos personales */}
@@ -145,6 +149,7 @@ const UsuarioForm = ({ initialData, onSubmit, onCancel }: UsuarioFormProps) => {
             name="fecha_nacimiento"
             value={formData.fecha_nacimiento}
             onChange={handleChange}
+            max={maxDate}
             className="w-full bg-slate-700 rounded-lg px-3 py-2 text-white"
           />
         </div>

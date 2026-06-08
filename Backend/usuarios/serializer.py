@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Sexo, Rol, Usuario, ClienteCoach
+from datetime import date
 
 
 class SexoSerializer(serializers.ModelSerializer):
@@ -15,10 +16,41 @@ class RolSerializer(serializers.ModelSerializer):
 
 
 class UsuarioSerializer(serializers.ModelSerializer):
-    distrito_nombre = serializers.CharField(source='id_distrito.nombre', read_only=True)
-    sucursal_nombre = serializers.CharField(source='id_sucursal.nombre', read_only=True)
-    sexo_nombre = serializers.CharField(source='id_sexo.nombre', read_only=True)
+    distrito_nombre = serializers.CharField(
+        source='id_distrito.nombre', read_only=True)
+    sucursal_nombre = serializers.CharField(
+        source='id_sucursal.nombre', read_only=True)
+    sexo_nombre = serializers.CharField(
+        source='id_sexo.nombre', read_only=True)
     rol_nombre = serializers.CharField(source='id_rol.nombre', read_only=True)
+
+    def validate_fecha_nacimiento(self, value):
+
+        if value is None:
+            return value
+
+        hoy = date.today()
+
+        # No permitir fechas futuras
+        if value > hoy:
+            raise serializers.ValidationError(
+                "La fecha de nacimiento no puede ser posterior a la fecha actual."
+            )
+
+        # Calcular edad
+        edad = (
+            hoy.year
+            - value.year
+            - ((hoy.month, hoy.day) < (value.month, value.day))
+        )
+
+        # Debe tener al menos 14 años
+        if edad < 14:
+            raise serializers.ValidationError(
+                "El usuario debe tener al menos 14 años."
+            )
+
+        return value
 
     class Meta:
         model = Usuario
@@ -39,7 +71,8 @@ class UsuarioSerializer(serializers.ModelSerializer):
 
 
 class UsuarioListSerializer(serializers.ModelSerializer):
-    sexo_nombre = serializers.CharField(source='id_sexo.nombre', read_only=True)
+    sexo_nombre = serializers.CharField(
+        source='id_sexo.nombre', read_only=True)
     rol_nombre = serializers.CharField(source='id_rol.nombre', read_only=True)
 
     class Meta:
@@ -90,5 +123,6 @@ class AlumnoPorCoachSerializer(serializers.Serializer):
     nombre = serializers.CharField(max_length=150)
     apellido = serializers.CharField(max_length=150)
     correo = serializers.EmailField()
-    telefono = serializers.CharField(max_length=50, allow_null=True, required=False)
+    telefono = serializers.CharField(
+        max_length=50, allow_null=True, required=False)
     fecha_asignacion = serializers.DateTimeField(required=False)
