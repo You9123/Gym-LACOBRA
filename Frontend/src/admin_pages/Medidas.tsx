@@ -3,6 +3,7 @@ import {
   obtenerMedidas, 
   registrarMedida,
   registrarHistorial,
+  actualizarUltimoHistorial,
   actualizarMedida, 
   eliminarMedida 
 } from '../api/medidas';
@@ -37,7 +38,7 @@ const Medidas = () => {
     }
   };
 
-  const handleCreate = async (medidaData: any) => {
+const handleCreate = async (medidaData: any) => {
   try {
 
     await registrarMedida({
@@ -45,49 +46,67 @@ const Medidas = () => {
       peso_actual: medidaData.peso_actual,
       altura: medidaData.altura,
       porcentaje_grasa_actual: medidaData.porcentaje_grasa_actual,
-      masa_muscular_actual: medidaData.masa_muscular_actual
-    });
+      masa_muscular_actual: medidaData.masa_muscular_actual,
 
-    await registrarHistorial({
-      id_cliente: medidaData.id_cliente,
-      peso: medidaData.peso_actual,
-      altura: medidaData.altura,
-      porcentaje_grasa: medidaData.porcentaje_grasa_actual,
-      masa_muscular: medidaData.masa_muscular_actual,
-
+      // Estos campos ahora viajarán al backend
       cuello: medidaData.cuello,
       cintura: medidaData.cintura,
       cadera: medidaData.cadera,
       pecho: medidaData.pecho,
       brazo: medidaData.brazo,
       pierna: medidaData.pierna,
+    });
 
-      fecha_medicion: new Date().toISOString().split('T')[0]
-        });
-
-        await cargarMedidas();
-        setShowForm(false);
+    await cargarMedidas();
+    setShowForm(false);
 
   } catch (error: any) {
-      console.error(error);
-  }
-  };
+    console.error('Error guardando medida:', error);
 
-  const handleUpdate = async (id, medidaData) => {
-    try {
-      await actualizarMedida(id, medidaData);
-      await cargarMedidas();
-      setEditingMedida(null);
-    } catch (error) {
-      console.error('Error actualizando medida:', error);
+    if (error.response?.data?.error) {
+      setErrorMessage(error.response.data.error);
+    } else {
+      setErrorMessage('Error al guardar la medición');
     }
-  };
+  }
+};
 
-  // Abrir modal de confirmación
-  const confirmDelete = (medida) => {
-    setMedidaToDelete(medida);
-    setShowConfirmDelete(true);
-  };
+const handleUpdate = async (id, medidaData) => {
+  try {
+
+    await actualizarMedida(id, {
+      id_cliente: editingMedida.id_cliente,
+      peso_actual: medidaData.peso_actual,
+      altura: medidaData.altura,
+      porcentaje_grasa_actual: medidaData.porcentaje_grasa_actual,
+      masa_muscular_actual: medidaData.masa_muscular_actual
+    });
+
+    console.log('ID CLIENTE:', medidaData.id_cliente);
+    await actualizarUltimoHistorial(
+      editingMedida.id_cliente,
+      {
+        peso: medidaData.peso_actual,
+        altura: medidaData.altura,
+        porcentaje_grasa: medidaData.porcentaje_grasa_actual,
+        masa_muscular: medidaData.masa_muscular_actual,
+
+        cuello: medidaData.cuello,
+        cintura: medidaData.cintura,
+        cadera: medidaData.cadera,
+        pecho: medidaData.pecho,
+        brazo: medidaData.brazo,
+        pierna: medidaData.pierna,
+      }
+    );
+
+    await cargarMedidas();
+    setEditingMedida(null);
+
+  } catch (error) {
+    console.error('Error actualizando medida:', error);
+  }
+};
 
   // Ejecutar eliminación
   const handleDelete = async () => {
@@ -102,6 +121,11 @@ const Medidas = () => {
         setErrorMessage('Error al eliminar la medida');
       }
     }
+  };
+
+  const confirmDelete = (medida) => {
+    setMedidaToDelete(medida);
+    setShowConfirmDelete(true);
   };
 
   // Cancelar eliminación

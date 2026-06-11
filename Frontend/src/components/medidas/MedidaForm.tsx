@@ -165,47 +165,146 @@ const MedidaForm = ({ initialData, onSubmit, onCancel }: MedidaFormProps) => {
           </div>
         )}
 
-        {/* Medidas Avanzadas */}
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium mb-2">
-              % Grasa Corporal
-            </label>
-            <input
-              type="number"
-              step="0.1"
-              name="porcentaje_grasa_actual"
-              value={formData.porcentaje_grasa_actual}
-              onChange={handleChange}
-              className="w-full bg-slate-700 rounded-lg px-3 py-2 text-white"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-2">
-              Masa Muscular (kg)
-            </label>
-            <input
-              type="number"
-              step="0.1"
-              name="masa_muscular_actual"
-              value={formData.masa_muscular_actual}
-              onChange={handleChange}
-              className="w-full bg-slate-700 rounded-lg px-3 py-2 text-white"
-            />
-          </div>
-        </div>
+{/* Medidas Avanzadas */}
+<div className="grid grid-cols-2 gap-4">
+  <div>
+    <label className="block text-sm font-medium mb-2">
+      % Grasa Corporal
+    </label>
+    <input
+      type="number"
+      step="0.1"
+      name="porcentaje_grasa_actual"
+      value={formData.porcentaje_grasa_actual}
+      onChange={handleChange}
+      className="w-full bg-slate-700 rounded-lg px-3 py-2 text-white"
+    />
+  </div>
 
-        <div className="flex gap-3 pt-4">
-          <button type="submit" className="flex-1 bg-cyan-500 hover:bg-cyan-600 py-2 rounded-lg">
-            Actualizar
-          </button>
-          <button type="button" onClick={onCancel} className="flex-1 bg-slate-700 hover:bg-slate-600 py-2 rounded-lg">
-            Cancelar
-          </button>
-        </div>
-      </form>
-    );
-  }
+  <div>
+    <label className="block text-sm font-medium mb-2">
+      Masa Muscular (kg)
+    </label>
+    <input
+      type="number"
+      step="0.1"
+      name="masa_muscular_actual"
+      value={formData.masa_muscular_actual}
+      onChange={handleChange}
+      className="w-full bg-slate-700 rounded-lg px-3 py-2 text-white"
+    />
+  </div>
+</div>
+
+{/* Medidas Corporales */}
+<div className="grid grid-cols-2 gap-4">
+
+  <div>
+    <label className="block text-sm font-medium mb-2">
+      Cuello (cm)
+    </label>
+    <input
+      type="number"
+      step="0.1"
+      name="cuello"
+      value={formData.cuello}
+      onChange={handleChange}
+      className="w-full bg-slate-700 rounded-lg px-3 py-2 text-white"
+    />
+  </div>
+
+  <div>
+    <label className="block text-sm font-medium mb-2">
+      Cintura (cm)
+    </label>
+    <input
+      type="number"
+      step="0.1"
+      name="cintura"
+      value={formData.cintura}
+      onChange={handleChange}
+      className="w-full bg-slate-700 rounded-lg px-3 py-2 text-white"
+    />
+  </div>
+
+  <div>
+    <label className="block text-sm font-medium mb-2">
+      Cadera (cm)
+    </label>
+    <input
+      type="number"
+      step="0.1"
+      name="cadera"
+      value={formData.cadera}
+      onChange={handleChange}
+      className="w-full bg-slate-700 rounded-lg px-3 py-2 text-white"
+    />
+  </div>
+
+  <div>
+    <label className="block text-sm font-medium mb-2">
+      Pecho (cm)
+    </label>
+    <input
+      type="number"
+      step="0.1"
+      name="pecho"
+      value={formData.pecho}
+      onChange={handleChange}
+      className="w-full bg-slate-700 rounded-lg px-3 py-2 text-white"
+    />
+  </div>
+
+  <div>
+    <label className="block text-sm font-medium mb-2">
+      Brazo (cm)
+    </label>
+    <input
+      type="number"
+      step="0.1"
+      name="brazo"
+      value={formData.brazo}
+      onChange={handleChange}
+      className="w-full bg-slate-700 rounded-lg px-3 py-2 text-white"
+    />
+  </div>
+
+  <div>
+    <label className="block text-sm font-medium mb-2">
+      Pierna (cm)
+    </label>
+    <input
+      type="number"
+      step="0.1"
+      name="pierna"
+      value={formData.pierna}
+      onChange={handleChange}
+      className="w-full bg-slate-700 rounded-lg px-3 py-2 text-white"
+    />
+  </div>
+
+</div>
+
+<div className="flex gap-3 pt-4">
+  <button
+    type="submit"
+    className="flex-1 bg-cyan-500 hover:bg-cyan-600 py-2 rounded-lg"
+  >
+    Actualizar
+  </button>
+
+  <button
+    type="button"
+    onClick={onCancel}
+    className="flex-1 bg-slate-700 hover:bg-slate-600 py-2 rounded-lg"
+  >
+    Cancelar
+  </button>
+</div>
+</form>
+);
+}
+  
 
   // Para creación: mostrar selector de cliente
   return (

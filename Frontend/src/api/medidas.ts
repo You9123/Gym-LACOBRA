@@ -141,3 +141,16 @@ export const registrarHistorial = async (
   const { data } = await api.post<HistorialMedida>('/medidas/historial/', payload);
   return data;
 };
+
+export const actualizarUltimoHistorial = async (
+  clienteId: number,
+  payload: any
+) => {
+
+  const { data } = await api.put(
+    `/medidas/historial/ultimo/${clienteId}/editar/`,
+    payload
+  );
+
+  return data;
+};

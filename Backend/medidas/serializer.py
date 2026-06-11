@@ -1,8 +1,15 @@
 from rest_framework import serializers
 from .models import Medida, HistorialMedida
+from usuarios.models import Usuario
 
 
 class MedidaSerializer(serializers.ModelSerializer):
+
+    id_cliente = serializers.PrimaryKeyRelatedField(
+        queryset=Usuario.objects.all(),
+        validators=[]
+    )
+
     class Meta:
         model = Medida
         fields = [
@@ -19,6 +26,8 @@ class MedidaSerializer(serializers.ModelSerializer):
     def get_validators(self):
         # Elimina la validación de unicidad en PATCH
         return []
+
+
 class HistorialMedidaSerializer(serializers.ModelSerializer):
     class Meta:
         model = HistorialMedida

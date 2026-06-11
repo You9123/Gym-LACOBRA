@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.db import connection
 from django.shortcuts import get_object_or_404
+from datetime import date
 
 from .models import Medida, HistorialMedida
 from .serializer import MedidaSerializer, HistorialMedidaSerializer
@@ -13,47 +14,127 @@ from .serializer import MedidaSerializer, HistorialMedidaSerializer
 # ─────────────────────────────────────────────
 
 class MedidaListView(APIView):
-    """
-    GET  – lista todas las medidas actuales.
-    POST – inserta medida llamando a SP_GESTIONAR_MEDIDA('INSERTAR').
-           El trigger TRG_HISTORIAL_MEDIDA registra automáticamente en HISTORIAL_MEDIDA.
-    """
 
     def get(self, request):
-        medidas = Medida.objects.select_related('id_cliente').all()
-        serializer = MedidaSerializer(medidas, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        medidas = Medida.objects.select_related(
+            'id_cliente'
+        ).all()
+
+        serializer = MedidaSerializer(
+            medidas,
+            many=True
+        )
+
+        return Response(
+            serializer.data,
+            status=status.HTTP_200_OK
+        )
 
     def post(self, request):
-        serializer = MedidaSerializer(data=request.data)
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+        serializer = MedidaSerializer(
+            data=request.data
+        )
+
+        if not serializer.is_valid():
+            print("ERRORES DEL SERIALIZER:")
+            print(serializer.errors)
+
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
+            )
         data = serializer.validated_data
+        cliente = data['id_cliente']
+
         try:
-            with connection.cursor() as cursor:
-                cursor.callproc('SP_GESTIONAR_MEDIDA', [
-                    'INSERTAR',
-                    None,                                           # P_MEDIDA_ID
-                    data['id_cliente'].pk,
-                    data.get('peso_actual'),
-                    data.get('altura'),
-                    data.get('porcentaje_grasa_actual'),
-                    data.get('masa_muscular_actual'),
-                ])
+
+            # Verificar si el cliente ya tiene una medida actual
+            medida_existente = Medida.objects.filter(
+                id_cliente=cliente
+            ).first()
+
+            if medida_existente:
+
+                # ACTUALIZAR MEDIDA ACTUAL
+                with connection.cursor() as cursor:
+                    cursor.callproc('SP_GESTIONAR_MEDIDA', [
+                        'ACTUALIZAR',
+                        medida_existente.id_medida,
+                        cliente.pk,
+                        data.get('peso_actual'),
+                        data.get('altura'),
+                        data.get('porcentaje_grasa_actual'),
+                        data.get('masa_muscular_actual'),
+                    ])
+
+                medida_existente.refresh_from_db()
+
+                # NUEVO REGISTRO EN HISTORIAL
+                HistorialMedida.objects.create(
+                    id_cliente=cliente,
+                    peso=data.get('peso_actual'),
+                    altura=data.get('altura'),
+                    porcentaje_grasa=data.get('porcentaje_grasa_actual'),
+                    masa_muscular=data.get('masa_muscular_actual'),
+                    cuello=request.data.get('cuello'),
+                    cintura=request.data.get('cintura'),
+                    cadera=request.data.get('cadera'),
+                    pecho=request.data.get('pecho'),
+                    brazo=request.data.get('brazo'),
+                    pierna=request.data.get('pierna'),
+                    fecha_medicion=date.today()
+                )
+
+                return Response(
+                    MedidaSerializer(medida_existente).data,
+                    status=status.HTTP_200_OK
+                )
+
+            else:
+
+                # CREAR MEDIDA ACTUAL
+                with connection.cursor() as cursor:
+                    cursor.callproc('SP_GESTIONAR_MEDIDA', [
+                        'INSERTAR',
+                        None,
+                        cliente.pk,
+                        data.get('peso_actual'),
+                        data.get('altura'),
+                        data.get('porcentaje_grasa_actual'),
+                        data.get('masa_muscular_actual'),
+                    ])
+
+                medida = Medida.objects.filter(
+                    id_cliente=cliente.pk
+                ).order_by('-id_medida').first()
+
+                # CREAR PRIMER HISTORIAL
+                HistorialMedida.objects.create(
+                    id_cliente=cliente,
+                    peso=data.get('peso_actual'),
+                    altura=data.get('altura'),
+                    porcentaje_grasa=data.get('porcentaje_grasa_actual'),
+                    masa_muscular=data.get('masa_muscular_actual'),
+                    cuello=request.data.get('cuello'),
+                    cintura=request.data.get('cintura'),
+                    cadera=request.data.get('cadera'),
+                    pecho=request.data.get('pecho'),
+                    brazo=request.data.get('brazo'),
+                    pierna=request.data.get('pierna'),
+                    fecha_medicion=date.today()
+                )
+
+                return Response(
+                    MedidaSerializer(medida).data,
+                    status=status.HTTP_201_CREATED
+                )
+
         except Exception as e:
             return Response(
                 {'error': str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-
-        medida = Medida.objects.filter(
-            id_cliente=data['id_cliente'].pk
-        ).order_by('-id_medida').first()
-        return Response(
-            MedidaSerializer(medida).data,
-            status=status.HTTP_201_CREATED
-        )
 
 
 class MedidaDetailView(APIView):
@@ -122,27 +203,30 @@ class MedidaByClienteView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def patch(self, request, cliente_pk):
-      medida = get_object_or_404(Medida, id_cliente=cliente_pk)
-      try:
-        with connection.cursor() as cursor:
-            cursor.callproc('SP_GESTIONAR_MEDIDA', [
-                'ACTUALIZAR',
-                medida.id_medida,
-                cliente_pk,
-                request.data.get('peso_actual'),
-                request.data.get('altura'),
-                request.data.get('porcentaje_grasa_actual'),
-                request.data.get('masa_muscular_actual'),
-            ])
-      except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        medida = get_object_or_404(Medida, id_cliente=cliente_pk)
+        try:
+            with connection.cursor() as cursor:
+                cursor.callproc('SP_GESTIONAR_MEDIDA', [
+                    'ACTUALIZAR',
+                    medida.id_medida,
+                    cliente_pk,
+                    request.data.get('peso_actual'),
+                    request.data.get('altura'),
+                    request.data.get('porcentaje_grasa_actual'),
+                    request.data.get('masa_muscular_actual'),
+                ])
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-      medida.refresh_from_db()
-      return Response(MedidaSerializer(medida).data, status=status.HTTP_200_OK)
+        medida.refresh_from_db()
+        return Response(MedidaSerializer(medida).data, status=status.HTTP_200_OK)
+
+
 # ─────────────────────────────────────────────
 #  HISTORIAL DE MEDIDAS
 #  (solo lectura — lo gestiona el trigger TRG_HISTORIAL_MEDIDA)
 # ─────────────────────────────────────────────
+
 
 class HistorialMedidaListView(APIView):
     """
@@ -210,6 +294,8 @@ class CalcularImcView(APIView):
             {'imc': imc, 'categoria': categoria},
             status=status.HTTP_200_OK
         )
+
+
 class HistorialMedidaCreateView(APIView):
 
     def post(self, request):
@@ -218,3 +304,37 @@ class HistorialMedidaCreateView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class UltimoHistorialMedidaUpdateView(APIView):
+
+    def put(self, request, cliente_pk):
+
+        ultimo = HistorialMedida.objects.filter(
+            id_cliente=cliente_pk
+        ).order_by('-id_historial').first()
+
+        if not ultimo:
+            return Response(
+                {'error': 'No existe historial para este cliente'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        serializer = HistorialMedidaSerializer(
+            ultimo,
+            data=request.data,
+            partial=True
+        )
+
+        if serializer.is_valid():
+            serializer.save()
+
+            return Response(
+                serializer.data,
+                status=status.HTTP_200_OK
+            )
+
+        return Response(
+            serializer.errors,
+            status=status.HTTP_400_BAD_REQUEST
+        )
