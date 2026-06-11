@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { 
   obtenerMedidas, 
-  registrarMedida, 
+  registrarMedida,
+  registrarHistorial,
   actualizarMedida, 
   eliminarMedida 
 } from '../api/medidas';
@@ -37,16 +38,39 @@ const Medidas = () => {
   };
 
   const handleCreate = async (medidaData: any) => {
-    try {
-      await registrarMedida(medidaData);
-      await cargarMedidas();
-      setShowForm(false);
-    } catch (error: any) {
-      console.error('Error creando medida:', error);
-      if (error.response?.status === 400) {
-        setErrorMessage('Este cliente ya tiene una medida registrada');
-      }
-    }
+  try {
+
+    await registrarMedida({
+      id_cliente: medidaData.id_cliente,
+      peso_actual: medidaData.peso_actual,
+      altura: medidaData.altura,
+      porcentaje_grasa_actual: medidaData.porcentaje_grasa_actual,
+      masa_muscular_actual: medidaData.masa_muscular_actual
+    });
+
+    await registrarHistorial({
+      id_cliente: medidaData.id_cliente,
+      peso: medidaData.peso_actual,
+      altura: medidaData.altura,
+      porcentaje_grasa: medidaData.porcentaje_grasa_actual,
+      masa_muscular: medidaData.masa_muscular_actual,
+
+      cuello: medidaData.cuello,
+      cintura: medidaData.cintura,
+      cadera: medidaData.cadera,
+      pecho: medidaData.pecho,
+      brazo: medidaData.brazo,
+      pierna: medidaData.pierna,
+
+      fecha_medicion: new Date().toISOString().split('T')[0]
+        });
+
+        await cargarMedidas();
+        setShowForm(false);
+
+  } catch (error: any) {
+      console.error(error);
+  }
   };
 
   const handleUpdate = async (id, medidaData) => {

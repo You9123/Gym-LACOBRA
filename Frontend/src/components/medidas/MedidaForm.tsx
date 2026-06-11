@@ -17,7 +17,13 @@ const MedidaForm = ({ initialData, onSubmit, onCancel }: MedidaFormProps) => {
     peso_actual: initialData?.peso_actual || '',
     altura: initialData?.altura || '',
     porcentaje_grasa_actual: initialData?.porcentaje_grasa_actual || '',
-    masa_muscular_actual: initialData?.masa_muscular_actual || ''
+    masa_muscular_actual: initialData?.masa_muscular_actual || '',
+    cuello: initialData?.cuello || '',
+    cintura: initialData?.cintura || '',
+    cadera: initialData?.cadera || '',
+    pecho: initialData?.pecho || '',
+    brazo: initialData?.brazo || '',
+    pierna: initialData?.pierna || '',
   });
 
   // Calcular IMC automáticamente
@@ -101,7 +107,13 @@ const MedidaForm = ({ initialData, onSubmit, onCancel }: MedidaFormProps) => {
       peso_actual: parseFloat(formData.peso_actual),
       altura: parseFloat(formData.altura),
       porcentaje_grasa_actual: formData.porcentaje_grasa_actual ? parseFloat(formData.porcentaje_grasa_actual) : null,
-      masa_muscular_actual: formData.masa_muscular_actual ? parseFloat(formData.masa_muscular_actual) : null
+      masa_muscular_actual: formData.masa_muscular_actual ? parseFloat(formData.masa_muscular_actual) : null,
+      cuello: formData.cuello ? parseFloat(formData.cuello) : null,
+      cintura: formData.cintura ? parseFloat(formData.cintura) : null,
+      cadera: formData.cadera ? parseFloat(formData.cadera) : null,
+      pecho: formData.pecho ? parseFloat(formData.pecho) : null,
+      brazo: formData.brazo ? parseFloat(formData.brazo) : null,
+      pierna: formData.pierna ? parseFloat(formData.pierna) : null,
     };
     
     onSubmit(datosEnvio);
@@ -295,6 +307,99 @@ const MedidaForm = ({ initialData, onSubmit, onCancel }: MedidaFormProps) => {
           />
         </div>
       </div>
+
+      {/* Medidas Corporales */}
+<div className="grid grid-cols-2 gap-4">
+  <div>
+    <label className="block text-sm font-medium mb-2">
+      Cuello (cm)
+    </label>
+    <input
+      type="number"
+      step="0.1"
+      name="cuello"
+      value={formData.cuello}
+      onChange={handleChange}
+      placeholder="Ej: 38"
+      className="w-full bg-slate-700 rounded-lg px-3 py-2 text-white"
+    />
+  </div>
+
+  <div>
+    <label className="block text-sm font-medium mb-2">
+      Cintura (cm)
+    </label>
+    <input
+      type="number"
+      step="0.1"
+      name="cintura"
+      value={formData.cintura}
+      onChange={handleChange}
+      placeholder="Ej: 82"
+      className="w-full bg-slate-700 rounded-lg px-3 py-2 text-white"
+    />
+  </div>
+
+  <div>
+    <label className="block text-sm font-medium mb-2">
+      Cadera (cm)
+    </label>
+    <input
+      type="number"
+      step="0.1"
+      name="cadera"
+      value={formData.cadera}
+      onChange={handleChange}
+      placeholder="Ej: 95"
+      className="w-full bg-slate-700 rounded-lg px-3 py-2 text-white"
+    />
+  </div>
+
+  <div>
+    <label className="block text-sm font-medium mb-2">
+      Pecho (cm)
+    </label>
+    <input
+      type="number"
+      step="0.1"
+      name="pecho"
+      value={formData.pecho}
+      onChange={handleChange}
+      placeholder="Ej: 102"
+      className="w-full bg-slate-700 rounded-lg px-3 py-2 text-white"
+    />
+  </div>
+
+  <div>
+    <label className="block text-sm font-medium mb-2">
+      Brazo (cm)
+    </label>
+    <input
+      type="number"
+      step="0.1"
+      name="brazo"
+      value={formData.brazo}
+      onChange={handleChange}
+      placeholder="Ej: 36"
+      className="w-full bg-slate-700 rounded-lg px-3 py-2 text-white"
+    />
+  </div>
+
+  <div>
+    <label className="block text-sm font-medium mb-2">
+      Pierna (cm)
+    </label>
+    <input
+      type="number"
+      step="0.1"
+      name="pierna"
+      value={formData.pierna}
+      onChange={handleChange}
+      placeholder="Ej: 58"
+      className="w-full bg-slate-700 rounded-lg px-3 py-2 text-white"
+    />
+  </div>
+</div>
 
       <div className="flex gap-3 pt-4">
         <button type="submit" className="flex-1 bg-cyan-500 hover:bg-cyan-600 py-2 rounded-lg">
